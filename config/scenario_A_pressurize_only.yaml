@@ -1,0 +1,42 @@
+# =============================================================================
+# Scenario A: Pressurize Only
+# =============================================================================
+# All compressed air goes into the tanker ullage.
+# Liquid is pushed out solely by gas pressure differential.
+# No AODD pump is used.
+# =============================================================================
+
+scenario_name: scenario_A_pressurize_only
+
+# --- Core Tank ---
+tanker_total_volume_gal: 4500       # Total tanker capacity [US gallons]
+initial_fill_fraction: 0.90          # 90% full → 4050 gal liquid, 450 gal ullage
+max_tank_pressure_psig: 30.0         # Maximum allowable ullage pressure [psig]
+ambient_pressure_psia: 14.7          # Atmospheric pressure [psia]
+temperature_C: 25.0                  # Ambient temperature [°C]
+
+# --- Air Supply ---
+air_supply_scfm: 19.0               # Total standard air supply [SCFM]
+air_split_fraction_to_tank: 1.0      # ALL air goes to tank pressurization
+air_split_fraction_to_pump: 0.0      # NO air to pump
+
+# --- Liquid Properties (Motor Oil) ---
+density_kg_m3: 880.0                 # Oil density [kg/m³]
+viscosity_cP: 220.0                  # Dynamic viscosity [centipoise]
+
+# --- Hose / Piping ---
+hose_ID_in: 2.0                      # Internal diameter [inches]
+hose_length_ft: 50.0                 # Total hose length [feet]
+roughness_mm: 0.0                    # Pipe roughness [mm] (0 = smooth)
+minor_loss_K_total: 5.0              # Sum of all minor loss coefficients (fittings, bends)
+elevation_change_ft: 0.0             # Height difference [feet] (0 = level)
+
+# --- Receiving System ---
+receiver_backpressure_psig: 0.0      # Receiver inlet pressure [psig] (atmospheric)
+
+# --- AODD Pump (not used in this scenario) ---
+pump_efficiency_gpm_per_scfm: 0.5    # [GPM per SCFM] — irrelevant here since f_pump=0
+
+# --- Simulation Settings ---
+stop_time_s: 7200                    # Max sim duration [seconds] (2 hours)
+output_interval_s: 1.0               # CSV output interval [seconds]

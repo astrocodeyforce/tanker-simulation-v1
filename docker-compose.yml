@@ -1,0 +1,240 @@
+###############################################################################
+# SIM-LAB — Truck Tanker Simulation Environment
+# docker-compose.yml
+#
+# ISOLATION GUARANTEES:
+#   - COMPOSE_PROJECT_NAME=simlab (set in .env)
+#   - Dedicated bridge network (simlab_network) — NOT external
+#   - Dashboard port localhost-only (127.0.0.1:8501) — no public exposure
+#   - Bind mounts only — no named Docker volumes (no collision risk)
+#   - No privileged mode — no elevated access
+#   - No host network — containers use project bridge only
+#   - Resource limits: CPU 1.0, Memory 1GB per container
+#
+# EXISTING PRODUCTION CONTAINERS (DO NOT TOUCH):
+#   hmdm, hmdm-db, root-n8n-1, root-traefik-1
+#
+###############################################################################
+
+services:
+
+  # ===========================================================================
+  # LEGACY SERVICES (Environment Validation — HelloWorld)
+  # ===========================================================================
+
+  # -------------------------------------------------------------------------
+  # OpenModelica — HelloWorld Validation Runner
+  # -------------------------------------------------------------------------
+  openmodelica:
+    image: openmodelica/openmodelica:v1.23.1-ompython
+    container_name: simlab-openmodelica
+    working_dir: /work
+    volumes:
+      - ./models:/work/models:ro
+      - ./outputs:/work/outputs
+      - ./scripts:/work/scripts:ro
+    networks:
+      - simlab_network
+    entrypoint: ["/bin/bash", "/work/scripts/run_simulation.sh"]
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1g
+
+  # -------------------------------------------------------------------------
+  # Python — HelloWorld Visualization
+  # -------------------------------------------------------------------------
+  python-viz:
+    image: python:3.12-slim
+    container_name: simlab-python-viz
+    working_dir: /work
+    volumes:
+      - ./outputs:/work/outputs
+      - ./scripts:/work/scripts:ro
+    networks:
+      - simlab_network
+    entrypoint: ["/bin/bash", "-c", "pip install --quiet matplotlib pandas && python /work/scripts/plot_results.py"]
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1g
+
+  # ===========================================================================
+  # APPLICATION SERVICES (TankerTransfer Simulation)
+  # ===========================================================================
+
+  # -------------------------------------------------------------------------
+  # OpenModelica Runner — TankerTransfer Scenario Execution
+  # -------------------------------------------------------------------------
+  # Purpose: Compile TankerTransfer.mo, run simulation with config overrides,
+  #          export CSV results to data/runs/<timestamp>_<scenario>/
+  # Usage:   docker compose run --rm openmodelica-runner \
+  #            bash /work/scripts/run_scenario.sh /work/config/<scenario>.yaml
+  # -------------------------------------------------------------------------
+  openmodelica-runner:
+    image: openmodelica/openmodelica:v1.23.1-ompython
+      # Same OpenModelica image — includes omc compiler and Python 3.
+    container_name: simlab-om-runner
+      # Distinct name from legacy 'simlab-openmodelica' service.
+    working_dir: /work
+    volumes:
+      - ./modelica:/work/modelica:ro
+        # Modelica source models (TankerTransfer.mo) — read-only.
+      - ./config:/work/config:ro
+        # Scenario YAML configs — read-only.
+      - ./scripts:/work/scripts:ro
+        # Runner scripts (run_scenario.sh, export_results.py) — read-only.
+      - ./data:/work/data
+        # Run output directories — read-write.
+        # Each run creates data/runs/<timestamp>_<scenario>/ with outputs.
+    networks:
+      - simlab_network
+    entrypoint: ["/bin/bash"]
+      # No default command — caller specifies the script and config.
+      # Example: docker compose run --rm openmodelica-runner \
+      #            bash /work/scripts/run_scenario.sh /work/config/scenario_A.yaml
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+            # Limit to 1 CPU core — prevents starving production containers.
+          memory: 1g
+            # Limit to 1 GB RAM — sufficient for ODE solving.
+    # NO 'ports:' — zero published ports.
+    # NO 'privileged: true' — no elevated access.
+    # NO 'network_mode: host' — uses dedicated bridge only.
+
+  # -------------------------------------------------------------------------
+  # Python Plotter — TankerTransfer Visualization & Reports
+  # -------------------------------------------------------------------------
+  # Purpose: Read simulation CSV, generate 4-panel PNG plots and reports.
+  # Usage:   docker compose run --rm python-plotter \
+  #            python /work/python/plot_results.py /work/data/runs/<dir>/outputs.csv
+  # -------------------------------------------------------------------------
+  python-plotter:
+    image: python:3.12-slim
+      # Official Python 3.12 slim — minimal size, includes pip.
+    container_name: simlab-py-plotter
+      # Distinct name from legacy 'simlab-python-viz' service.
+    working_dir: /work
+    volumes:
+      - ./python:/work/python:ro
+        # Python plotting and report scripts — read-only.
+      - ./data:/work/data
+        # Run output directories — reads CSV, writes PNG plots.
+      - ./scripts:/work/scripts:ro
+        # Shared scripts (if needed) — read-only.
+    networks:
+      - simlab_network
+    entrypoint: ["/bin/bash", "-c"]
+      # Expects a command string. Example:
+      #   docker compose run --rm python-plotter \
+      #     "pip install --quiet matplotlib && python /work/python/plot_results.py ..."
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+            # Limit to 1 CPU core.
+          memory: 1g
+            # Limit to 1 GB RAM — sufficient for plotting.
+    # NO 'ports:' — zero published ports.
+    # NO 'privileged: true' — no elevated access.
+
+  # ===========================================================================
+  # VISUALIZATION SERVICES (Interactive Dashboard)
+  # ===========================================================================
+
+  # -------------------------------------------------------------------------
+  # Streamlit + Plotly Dashboard — Interactive Web Visualization
+  # -------------------------------------------------------------------------
+  # Purpose: Serve interactive Plotly charts of simulation results in a
+  #          browser. Users connect via SSH tunnel to localhost:8501.
+  # Start:   docker compose up -d visual-dashboard
+  # Stop:    docker compose stop visual-dashboard
+  # Access:  ssh -L 8501:localhost:8501 user@vps → http://localhost:8501
+  # -------------------------------------------------------------------------
+  visual-dashboard:
+    image: python:3.12-slim
+      # Same Python image as python-plotter — keeps image cache efficient.
+    container_name: simlab-dashboard
+      # Distinct name — no collision with other simlab containers.
+    working_dir: /work
+    volumes:
+      - ./python:/work/python:ro
+        # Dashboard source (dashboard.py, requirements.txt) — read-only.
+      - ./data:/work/data
+        # Simulation run outputs — read-write for app to write results.
+      - ./config:/work/config
+        # YAML configs — read-write for app-generated configs.
+      - ./modelica:/work/modelica:ro
+        # Modelica models — read-only.
+      - ./scripts:/work/scripts:ro
+        # Pipeline scripts — read-only.
+      - /var/run/docker.sock:/var/run/docker.sock
+        # Docker socket — allows dashboard to trigger simulation containers.
+        # SECURITY: Only used to run simlab project containers.
+      - /usr/bin/docker:/usr/bin/docker:ro
+        # Docker CLI binary from host — avoids installing inside container.
+      - /usr/libexec/docker/cli-plugins:/usr/libexec/docker/cli-plugins:ro
+        # Docker compose plugin — needed for 'docker compose run'.
+      - ./docker-compose.yml:/work/docker-compose.yml:ro
+        # Compose file itself — needed when dashboard triggers simulations.
+      - ./.env:/work/.env:ro
+        # Project env file — needed for COMPOSE_PROJECT_NAME.
+    networks:
+      - simlab_network
+    ports:
+      - "0.0.0.0:8501:8501"
+        # PUBLIC binding — temporarily opened for direct browser access.
+        # To lock down again, change back to 127.0.0.1:8501:8501
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        pip install --quiet -r /work/python/requirements.txt &&
+        streamlit run /work/python/dashboard.py \
+          --server.address=0.0.0.0 \
+          --server.port=8501 \
+          --server.headless=true \
+          --browser.gatherUsageStats=false
+      # Streamlit listens on 0.0.0.0 INSIDE the container, but Docker's
+      # port mapping restricts external access to 127.0.0.1 on the host.
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+            # Limit to 1 CPU core — consistent with other services.
+          memory: 1g
+            # Limit to 1 GB RAM — sufficient for Streamlit + Plotly.
+    restart: unless-stopped
+      # Auto-restart if the container crashes. Stopped manually with:
+      #   docker compose stop visual-dashboard
+    # NO 'privileged: true' — no elevated access.
+    # NO 'network_mode: host' — uses dedicated bridge only.
+
+# =============================================================================
+# NETWORK DEFINITION
+# =============================================================================
+networks:
+  simlab_network:
+    driver: bridge
+      # Standard bridge driver — creates an isolated virtual network.
+    # NO 'external: true' — this network is created and managed by this
+    # Compose project ONLY. It has no relation to production networks:
+    #   - headwind-mdm_hmdm_internal
+    #   - root_default
+    # The full network name will be: simlab_simlab_network
+    # (prefix from COMPOSE_PROJECT_NAME + network name)
+
+# =============================================================================
+# VOLUMES — INTENTIONALLY EMPTY
+# =============================================================================
+# We use BIND MOUNTS (defined in service 'volumes:' above), NOT named
+# Docker volumes. This is a deliberate isolation choice:
+#   - Named volumes (e.g., 'simlab_data:') would appear in 'docker volume ls'
+#     alongside production volumes like 'n8n_data', 'hmdm_pgdata'
+#   - Bind mounts are invisible to Docker volume management
+#   - Bind mounts are scoped to /opt/sim-lab/ — completely isolated
+#   - No risk of accidental 'docker volume prune' destroying our data
+#     (and more importantly, we won't accidentally destroy production data)

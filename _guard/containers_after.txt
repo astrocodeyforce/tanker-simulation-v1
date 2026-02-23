@@ -1,0 +1,5 @@
+hmdm headwindmdm/hmdm:latest Up 29 hours
+hmdm-db postgres:15-alpine Up 29 hours (healthy)
+root-n8n-1 docker.n8n.io/n8nio/n8n Up 17 hours
+root-traefik-1 traefik Up 2 days
+simlab-dashboard python:3.12-slim Up About a minute

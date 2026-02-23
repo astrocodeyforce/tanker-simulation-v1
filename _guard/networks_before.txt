@@ -1,0 +1,6 @@
+bridge bridge
+headwind-mdm_hmdm_internal bridge
+host host
+none null
+root_default bridge
+simlab_simlab_network bridge

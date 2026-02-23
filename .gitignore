@@ -1,0 +1,24 @@
+# Simulation outputs (large CSVs, generated data)
+data/runs/
+data/parametric_sweeps/
+data/assets/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Docker build context artifacts
+docker/openmodelica/Modelica/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+nohup.out

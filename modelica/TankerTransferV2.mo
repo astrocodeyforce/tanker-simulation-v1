@@ -1,0 +1,360 @@
+// =============================================================================
+// TankerTransferV2.mo — Realistic Tanker Air-Displacement Unloading Model
+// =============================================================================
+// Version 2: Full rebuild with horizontal cylinder geometry, multi-segment
+// pipe network, compressor model, relief valve, and dynamic parameters.
+//
+// Build approach: incremental — this skeleton compiles first, then we add.
+// =============================================================================
+
+model TankerTransferV2
+  "Realistic air-displacement unloading of a horizontal cylindrical tanker"
+
+  // =========================================================================
+  // CONSTANTS
+  // =========================================================================
+  constant Real R_air = 287.05 "Specific gas constant for air [J/(kg·K)]";
+  constant Real g_acc = 9.80665 "Gravitational acceleration [m/s²]";
+  constant Real pi = 3.14159265358979 "Pi";
+  constant Real gamma_air = 1.4 "Heat capacity ratio for air";
+
+  // =========================================================================
+  // PARAMETERS — All set via -override from YAML config
+  // =========================================================================
+
+  // --- Tank geometry (horizontal cylinder) ---
+  parameter Real V_tank(unit="m3") = 26.498
+    "Total tank internal volume [m³] (default 7000 gal)";
+  parameter Real D_tank(unit="m") = 1.905
+    "Tank internal diameter [m] (default ~75 in for DOT-407)";
+  parameter Real L_tank(unit="m") = 0
+    "Tank length [m] (0 = auto-calc from V_tank and D_tank)";
+
+  // --- Initial conditions ---
+  parameter Real V_liquid_0(unit="m3") = 24.605
+    "Initial liquid volume [m³] (default 6500 gal)";
+  parameter Real P_atm(unit="Pa") = 101325.0
+    "Atmospheric pressure [Pa]";
+  parameter Real P_tank_0(unit="Pa") = 101325.0
+    "Initial tank absolute pressure [Pa]";
+  parameter Real T_gas_0(unit="K") = 293.15
+    "Initial gas temperature [K] (default 20°C)";
+
+  // --- Pressure limits ---
+  parameter Real P_max_gauge(unit="Pa") = 172369.0
+    "Max allowed gauge pressure [Pa] (default 25 psig)";
+
+  // --- Air supply (constant SCFM mode) ---
+  parameter Real mdot_air_max(unit="kg/s") = 0.01098
+    "Max air mass inflow [kg/s] (default 19 SCFM)";
+
+  // --- Liquid properties ---
+  parameter Real rho_L(unit="kg/m3") = 1000.0
+    "Liquid density [kg/m³]";
+  parameter Real mu_L(unit="Pa.s") = 0.1
+    "Liquid dynamic viscosity [Pa·s] (default 100 cP)";
+
+  // --- Outlet valve ---
+  parameter Real D_valve(unit="m") = 0.0762
+    "Outlet valve bore diameter [m] (default 3 in)";
+  parameter Real K_valve_open(unit="1") = 0.2
+    "Valve minor-loss K when fully open";
+  parameter Real u_valve(unit="1") = 1.0
+    "Valve opening fraction [0..1]";
+
+  // --- Discharge pipe segment 1 ---
+  parameter Real D_pipe1(unit="m") = 0.0762
+    "Segment 1 inner diameter [m] (default 3 in)";
+  parameter Real L_pipe1(unit="m") = 8.0
+    "Segment 1 length [m]";
+  parameter Real eps_pipe1(unit="m") = 1e-5
+    "Segment 1 roughness [m]";
+  parameter Real K_pipe1(unit="1") = 1.0
+    "Segment 1 minor loss K (fittings)";
+
+  // --- Discharge pipe segment 2 ---
+  parameter Real D_pipe2(unit="m") = 0.0762
+    "Segment 2 inner diameter [m] (default 3 in)";
+  parameter Real L_pipe2(unit="m") = 8.0
+    "Segment 2 length [m]";
+  parameter Real eps_pipe2(unit="m") = 1e-5
+    "Segment 2 roughness [m]";
+  parameter Real K_pipe2(unit="1") = 1.0
+    "Segment 2 minor loss K (fittings)";
+
+  // --- Elevation and receiver ---
+  parameter Real dz_total(unit="m") = 0.0
+    "Elevation change outlet to receiver [m] (+ve = lifting)";
+  parameter Real P_receiver(unit="Pa") = 101325.0
+    "Receiver absolute pressure [Pa]";
+
+  // --- Relief valve ---
+  parameter Real P_relief_gauge(unit="Pa") = 189606.0
+    "Relief valve opening gauge pressure [Pa] (default 27.5 psig)";
+  parameter Real Cd_relief(unit="1") = 0.62
+    "Relief valve discharge coefficient";
+  parameter Real D_relief(unit="m") = 0.0254
+    "Relief valve orifice diameter [m] (default 1 in)";
+
+  // --- Simulation ---
+  parameter Real V_liquid_min(unit="m3") = 0.038
+    "Minimum liquid volume before stop [m³] (default ~10 gal)";
+
+  // =========================================================================
+  // DERIVED PARAMETERS (computed once at init)
+  // =========================================================================
+  parameter Real P_max_abs = P_atm + P_max_gauge
+    "Max absolute pressure [Pa]";
+  parameter Real P_relief_abs = P_atm + P_relief_gauge
+    "Relief opening absolute pressure [Pa]";
+  parameter Real R_tank = D_tank / 2.0
+    "Tank radius [m]";
+  parameter Real L_tank_eff = if L_tank > 0 then L_tank
+    else V_tank / (pi * R_tank * R_tank)
+    "Effective tank length [m]";
+  parameter Real A_relief = pi * (D_relief/2)^2
+    "Relief orifice area [m²]";
+
+  // Pipe areas
+  parameter Real A_valve = pi * (D_valve/2)^2 "Valve flow area [m²]";
+  parameter Real A_pipe1 = pi * (D_pipe1/2)^2 "Pipe seg 1 flow area [m²]";
+  parameter Real A_pipe2 = pi * (D_pipe2/2)^2 "Pipe seg 2 flow area [m²]";
+
+  // =========================================================================
+  // STATE VARIABLES
+  // =========================================================================
+  Real m_gas(start=0, fixed=false, unit="kg")
+    "Gas mass in headspace [kg]";
+  Real V_liquid(start=0, fixed=false, unit="m3")
+    "Liquid volume in tank [m³]";
+
+  // =========================================================================
+  // ALGEBRAIC VARIABLES
+  // =========================================================================
+
+  // Gas / tank
+  Real V_gas(unit="m3") "Gas headspace volume [m³]";
+  Real P_tank(unit="Pa") "Tank absolute pressure [Pa]";
+  Real P_gauge(unit="Pa") "Tank gauge pressure [Pa]";
+  Real P_tank_psig "Tank gauge pressure [psig]";
+
+  // Liquid level in horizontal cylinder
+  Real h_liquid(unit="m") "Liquid height from bottom of cylinder [m]";
+  Real A_cross_liquid(unit="m2") "Liquid cross-section area [m²]";
+
+  // Driving pressure
+  Real dP_drive(unit="Pa") "Net driving pressure for liquid flow [Pa]";
+  Real dP_head(unit="Pa") "Hydrostatic head at outlet [Pa]";
+
+  // Flow (total through all segments in series)
+  Real Q_L(unit="m3/s") "Volumetric liquid flow rate [m³/s]";
+  Real Q_L_gpm "Flow rate [GPM]";
+
+  // Per-segment velocities, Re, friction
+  Real v_valve(unit="m/s") "Velocity through valve [m/s]";
+  Real v_pipe1(unit="m/s") "Velocity in pipe segment 1 [m/s]";
+  Real v_pipe2(unit="m/s") "Velocity in pipe segment 2 [m/s]";
+  Real Re_valve "Reynolds number at valve";
+  Real Re_pipe1 "Reynolds number in pipe 1";
+  Real Re_pipe2 "Reynolds number in pipe 2";
+  Real f_pipe1 "Darcy friction factor pipe 1";
+  Real f_pipe2 "Darcy friction factor pipe 2";
+
+  // Pressure drops per segment
+  Real dP_valve(unit="Pa") "Pressure drop across valve [Pa]";
+  Real dP_seg1(unit="Pa") "Pressure drop in pipe segment 1 [Pa]";
+  Real dP_seg2(unit="Pa") "Pressure drop in pipe segment 2 [Pa]";
+  Real dP_loss_total(unit="Pa") "Total liquid-side pressure loss [Pa]";
+
+  // Air flows
+  Real mdot_air_in(unit="kg/s") "Actual air mass inflow [kg/s]";
+  Real mdot_relief(unit="kg/s") "Relief valve mass outflow [kg/s]";
+
+  // Effective valve K
+  Real K_valve_eff "Effective valve K with opening fraction";
+
+  // Output tracking
+  Real V_transferred(unit="m3") "Cumulative transferred volume [m³]";
+  Real V_transferred_gal "Transferred [gal]";
+  Real V_liquid_gal "Remaining liquid [gal]";
+
+  // Unit conversions
+  parameter Real gal_per_m3 = 264.172;
+  parameter Real Pa_per_psi = 6894.76;
+
+initial equation
+  V_liquid = V_liquid_0;
+  m_gas = P_tank_0 * (V_tank - V_liquid_0) / (R_air * T_gas_0);
+
+equation
+  // =========================================================================
+  // 1) GAS HEADSPACE
+  // =========================================================================
+  V_gas = V_tank - V_liquid;
+  P_tank = m_gas * R_air * T_gas_0 / max(V_gas, 1e-6);
+  P_gauge = P_tank - P_atm;
+  P_tank_psig = P_gauge / Pa_per_psi;
+
+  // =========================================================================
+  // 2) LIQUID LEVEL IN HORIZONTAL CYLINDER
+  // =========================================================================
+  // V_liquid = L_tank_eff * A_cross_liquid(h)
+  // A_cross(h) = R² * acos((R-h)/R) - (R-h)*sqrt(2*R*h - h²)
+  // We need h from V_liquid: invert numerically via the algebraic equation
+  //
+  // For Modelica solver: state the algebraic relation
+  //   V_liquid = L_tank_eff * (R_tank^2 * acos((R_tank - h_liquid)/R_tank)
+  //              - (R_tank - h_liquid) * sqrt(max(2*R_tank*h_liquid - h_liquid^2, 0)))
+  // =========================================================================
+
+  // Clamp h_liquid to valid range
+  A_cross_liquid = if h_liquid <= 0 then 0.0
+    else if h_liquid >= D_tank then pi * R_tank * R_tank
+    else R_tank * R_tank * acos((R_tank - h_liquid) / R_tank)
+         - (R_tank - h_liquid) * sqrt(max(2*R_tank*h_liquid - h_liquid*h_liquid, 0));
+
+  V_liquid = L_tank_eff * A_cross_liquid;
+
+  // =========================================================================
+  // 3) HYDROSTATIC HEAD AT OUTLET (liquid above outlet center-bottom)
+  // =========================================================================
+  // Outlet at bottom of tank => head = rho * g * h_liquid
+  dP_head = rho_L * g_acc * h_liquid;
+
+  // =========================================================================
+  // 4) DRIVING PRESSURE
+  // =========================================================================
+  dP_drive = P_gauge + dP_head - (P_receiver - P_atm) - rho_L * g_acc * dz_total;
+
+  // =========================================================================
+  // 5) VALVE K MODEL
+  // =========================================================================
+  K_valve_eff = K_valve_open / max(u_valve * u_valve, 0.01);
+
+  // =========================================================================
+  // 6) PER-SEGMENT FLOW (series: same Q_L through all)
+  // =========================================================================
+  // Velocities
+  v_valve = Q_L / max(A_valve, 1e-10);
+  v_pipe1 = Q_L / max(A_pipe1, 1e-10);
+  v_pipe2 = Q_L / max(A_pipe2, 1e-10);
+
+  // Reynolds numbers
+  Re_valve = rho_L * abs(v_valve) * D_valve / mu_L;
+  Re_pipe1 = rho_L * abs(v_pipe1) * D_pipe1 / mu_L;
+  Re_pipe2 = rho_L * abs(v_pipe2) * D_pipe2 / mu_L;
+
+  // Friction factors with smooth laminar-turbulent blend
+  f_pipe1 = smoothFriction(Re_pipe1, eps_pipe1, D_pipe1);
+  f_pipe2 = smoothFriction(Re_pipe2, eps_pipe2, D_pipe2);
+
+  // Pressure drops
+  // Valve: minor loss only (L=0)
+  dP_valve = K_valve_eff * (rho_L * v_valve * abs(v_valve) / 2.0);
+
+  // Pipe 1: major + minor
+  dP_seg1 = f_pipe1 * (L_pipe1/max(D_pipe1,1e-6)) * (rho_L * v_pipe1 * abs(v_pipe1) / 2.0)
+           + K_pipe1 * (rho_L * v_pipe1 * abs(v_pipe1) / 2.0);
+
+  // Pipe 2: major + minor
+  dP_seg2 = f_pipe2 * (L_pipe2/max(D_pipe2,1e-6)) * (rho_L * v_pipe2 * abs(v_pipe2) / 2.0)
+           + K_pipe2 * (rho_L * v_pipe2 * abs(v_pipe2) / 2.0);
+
+  // Total loss
+  dP_loss_total = dP_valve + dP_seg1 + dP_seg2;
+
+  // =========================================================================
+  // 7) FLOW EQUATION (algebraic: drive = loss)
+  // =========================================================================
+  // When dP_drive > 0 and liquid available, solve for Q_L such that
+  // dP_drive = dP_loss_total.  If dP_drive <= 0, Q_L = 0.
+  //
+  // We state: dP_drive = dP_loss_total  when Q_L > 0
+  //           Q_L = 0                    when dP_drive <= 0
+
+  if dP_drive > 0 and V_liquid > V_liquid_min then
+    dP_drive = dP_loss_total;
+  else
+    Q_L = 0;
+  end if;
+
+  // =========================================================================
+  // 8) AIR INLET WITH PRESSURE CONTROLLER
+  // =========================================================================
+  // Simple model: constant mass flow, shut off when P >= P_max
+  // Soft ramp-down over 5000 Pa band to avoid solver discontinuity
+  mdot_air_in = if P_tank < P_max_abs then
+    mdot_air_max
+  else
+    mdot_air_max * max(0.0, 1.0 - (P_tank - P_max_abs) / 5000.0);
+
+  // =========================================================================
+  // 9) RELIEF VALVE
+  // =========================================================================
+  // Opens when P_tank > P_relief_abs, subsonic orifice flow to atmosphere
+  mdot_relief = if P_tank > P_relief_abs then
+    Cd_relief * A_relief * sqrt(max(2.0 * (P_tank - P_atm) * P_tank / (R_air * T_gas_0), 0))
+  else
+    0.0;
+
+  // =========================================================================
+  // 10) DIFFERENTIAL EQUATIONS
+  // =========================================================================
+  der(m_gas) = mdot_air_in - mdot_relief;
+  der(V_liquid) = -Q_L;
+
+  // =========================================================================
+  // 11) OUTPUT VARIABLES
+  // =========================================================================
+  Q_L_gpm = Q_L * gal_per_m3 * 60.0;
+  V_transferred = V_liquid_0 - V_liquid;
+  V_transferred_gal = V_transferred * gal_per_m3;
+  V_liquid_gal = V_liquid * gal_per_m3;
+
+  annotation(
+    experiment(StartTime=0, StopTime=7200, NumberOfIntervals=7200, Tolerance=1e-6),
+    Documentation(info="<html>
+      <p>Realistic tanker air-displacement unloading v2.</p>
+      <p>Horizontal cylinder, multi-segment pipe, valve, relief.</p>
+    </html>")
+  );
+
+end TankerTransferV2;
+
+// =============================================================================
+// HELPER FUNCTION: Smooth friction factor (laminar/transition/turbulent)
+// =============================================================================
+function smoothFriction
+  "Darcy friction factor with smooth laminar-turbulent transition"
+  input Real Re "Reynolds number";
+  input Real eps "Pipe roughness [m]";
+  input Real D "Pipe diameter [m]";
+  output Real f "Darcy friction factor";
+protected
+  Real Re_safe;
+  Real f_lam;
+  Real f_turb;
+  Real s;
+  Real relRough;
+algorithm
+  Re_safe := max(abs(Re), 1.0);
+  relRough := eps / max(D, 1e-6);
+
+  // Laminar: f = 64/Re
+  f_lam := 64.0 / Re_safe;
+
+  // Turbulent: Swamee-Jain explicit approximation
+  f_turb := 0.25 / (log10(relRough/3.7 + 5.74/(Re_safe^0.9)))^2;
+
+  // Smooth blend between 2000 and 4000
+  if Re_safe < 2000 then
+    f := f_lam;
+  elseif Re_safe > 4000 then
+    f := f_turb;
+  else
+    s := (Re_safe - 2000) / 2000.0;
+    // Cubic smoothstep
+    s := s * s * (3.0 - 2.0 * s);
+    f := (1.0 - s) * f_lam + s * f_turb;
+  end if;
+end smoothFriction;

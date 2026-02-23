@@ -1,0 +1,58 @@
+# =============================================================================
+# Scenario: Baseline — DOT-407 Tanker, Latex (100 cP), 19 SCFM
+# =============================================================================
+# Standard unloading of a 7000-gal horizontal cylindrical tanker using
+# engine-mounted air compressor at 19 SCFM through 3" hose network.
+# =============================================================================
+
+scenario_name: baseline_latex_19scfm
+
+# ─── Tank Geometry (horizontal cylinder, DOT-407 style) ─────────────────────
+tank_total_volume_gal: 7000          # Total internal volume [US gal]
+tank_diameter_in: 75                 # Internal diameter [inches] (~6.25 ft)
+tank_length_ft: 0                    # 0 = auto-calculate from volume & diameter
+
+# ─── Initial Conditions ──────────────────────────────────────────────────────
+initial_liquid_volume_gal: 6500      # Liquid volume at start [US gal]
+initial_tank_pressure_psig: 0.0      # Tank starts at atmospheric
+gas_temperature_C: 20.0              # Initial gas temperature [°C]
+ambient_pressure_psia: 14.696        # Local atmospheric pressure [psia]
+
+# ─── Pressure Limits ─────────────────────────────────────────────────────────
+max_tank_pressure_psig: 25.0         # Compressor shutoff setpoint [psig]
+relief_valve_pressure_psig: 27.5     # Relief valve lifts here [psig]
+relief_valve_Cd: 0.62                # Relief discharge coefficient
+relief_valve_diameter_in: 1.0        # Relief orifice diameter [in]
+
+# ─── Air Supply (engine-mounted compressor) ──────────────────────────────────
+air_supply_scfm: 19.0               # Standard cubic feet per minute [SCFM]
+
+# ─── Liquid Properties ───────────────────────────────────────────────────────
+liquid_density_kg_m3: 1050.0         # Latex density [kg/m³]
+liquid_viscosity_cP: 100.0           # Dynamic viscosity [centipoise]
+
+# ─── Outlet Valve (between tank and discharge hose) ──────────────────────────
+valve_diameter_in: 3.0               # Valve bore [inches]
+valve_K_open: 0.2                    # Fully-open minor loss coefficient
+valve_opening_fraction: 1.0          # 1.0 = fully open
+
+# ─── Discharge Pipe Segment 1 ────────────────────────────────────────────────
+pipe1_diameter_in: 3.0               # Inner diameter [inches]
+pipe1_length_ft: 25.0                # Length [feet]
+pipe1_roughness_mm: 0.01             # Roughness [mm] (rubber hose)
+pipe1_K_minor: 1.5                   # Minor losses (cam-lock + elbow)
+
+# ─── Discharge Pipe Segment 2 ────────────────────────────────────────────────
+pipe2_diameter_in: 3.0               # Inner diameter [inches]
+pipe2_length_ft: 25.0                # Length [feet]
+pipe2_roughness_mm: 0.01             # Roughness [mm]
+pipe2_K_minor: 1.0                   # Minor losses (cam-lock)
+
+# ─── Elevation & Receiver ────────────────────────────────────────────────────
+elevation_change_ft: 0.0             # Outlet to receiver height diff [ft]
+receiver_pressure_psig: 0.0          # Receiver backpressure [psig]
+
+# ─── Simulation ──────────────────────────────────────────────────────────────
+stop_time_s: 5400                    # Max sim time [seconds] (90 min)
+output_interval_s: 1.0               # Output every N seconds
+min_liquid_volume_gal: 10.0          # Stop when this much remains [gal]
