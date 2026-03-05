@@ -210,6 +210,44 @@ Verifies that running simulations does NOT affect production Docker containers, 
 
 ---
 
+## Component H: File Download Server
+
+**File:** `python/file_server.py`
+
+### Purpose
+
+Persistent HTTP file server on port 8502 for special-case reports (pump analyses,
+driver forms, engineering memos). **Completely separate** from the dashboard's
+simulation PDF export feature.
+
+### Architecture
+
+- Python `http.server` with styled HTML directory listing
+- Serves everything in `data/downloads/` — drop a file in, it's instantly available
+- Auto-starts with Docker (`restart: unless-stopped`)
+- Lightweight: 0.25 CPU, 128 MB RAM
+
+### When to Use
+
+| Use This (port 8502) | Use Dashboard (port 8501) |
+|:----------------------|:-------------------------|
+| One-off equipment analyses | Simulation run PDFs |
+| Driver reference forms | Per-scenario chart exports |
+| Engineering memos | Past results comparison |
+| Any file you drop in `data/downloads/` | Auto-generated from sim data |
+
+### Service Configuration
+
+| Property | Value |
+|----------|-------|
+| Docker service | `file-server` |
+| Container name | `simlab-file-server` |
+| Port binding | `0.0.0.0:8502:8502` |
+| Serve directory | `data/downloads/` |
+| Resource limits | CPU: 0.25, Memory: 128 MB |
+
+---
+
 ## Directory Layout
 
 ```
@@ -237,13 +275,21 @@ truck-tanker-sim-env/
 ├── python/
 │   ├── dashboard.py              # V2 Streamlit+Plotly dashboard
 │   ├── dashboard_v1.py           # V1 dashboard backup
+│   ├── file_server.py            # Port 8502 file download server
+│   ├── pump_report.py            # Pump analysis PDF generator
 │   ├── plot_results.py           # Static PNG plots
-│   └── requirements.txt          # Python dependencies
+│   └── requirements.txt          # Python deps (incl. kaleido==0.2.1)
 ├── data/
+│   ├── downloads/                # Files served on port 8502
+│   │   ├── Pump_Analysis_Report.pdf
+│   │   ├── Driver_Unloading_Data_Form.pdf
+│   │   └── Driver_Unloading_Sheet_V2.pdf
+│   ├── assets/
+│   │   └── logo.png
 │   └── runs/
 │       └── <YYYYMMDD_HHMMSS_label>/
 │           ├── inputs.yaml
-│           ├── outputs.csv       # 30-variable time series
+│           ├── outputs.csv       # 42-variable time series
 │           └── run_log.json
 ├── docs/
 │   ├── APPLICATION_SPEC.md
@@ -312,7 +358,7 @@ ssh -L 8501:127.0.0.1:8501 user@your-vps-ip
 | Property | Value |
 |----------|-------|
 | COMPOSE_PROJECT_NAME | `simlab` |
-| Published ports | `127.0.0.1:8501` only (localhost-bound) |
+| Published ports | `0.0.0.0:8501` (dashboard), `0.0.0.0:8502` (file server) |
 | External networks | NONE |
 | Volume strategy | Bind mounts only |
 | Resource limits | CPU: 1.0, Memory: 1 GB per container |

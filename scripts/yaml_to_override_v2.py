@@ -76,6 +76,9 @@ D_relief = g("relief_valve_diameter_in", 1.0) * IN_TO_M
 air_scfm = g("air_supply_scfm", 19.0)
 mdot_air_max = air_scfm * SCFM_TO_M3S * P_STD / (R_AIR * T_STD)
 
+# Compressor curve
+c_clearance = g("compressor_clearance", 0.0)  # 0=plant_air, 0.02=rotary_vane, 0.04=reciprocating
+
 # Liquid
 rho_L = g("liquid_density_kg_m3", 1000.0)
 mu_L = g("liquid_viscosity_cP", 100.0) * CP_TO_PAS
@@ -96,6 +99,24 @@ D_pipe2 = g("pipe2_diameter_in", 3.0) * IN_TO_M
 L_pipe2 = g("pipe2_length_ft", 25.0) * FT_TO_M
 eps_pipe2 = g("pipe2_roughness_mm", 0.01) * MM_TO_M
 K_pipe2 = g("pipe2_K_minor", 1.0)
+
+# Pipe segment 3 (inactive by default: L=0)
+D_pipe3 = g("pipe3_diameter_in", 3.0) * IN_TO_M
+L_pipe3 = g("pipe3_length_ft", 0.0) * FT_TO_M
+eps_pipe3 = g("pipe3_roughness_mm", 0.01) * MM_TO_M
+K_pipe3 = g("pipe3_K_minor", 0.0)
+
+# Pipe segment 4 (inactive by default: L=0)
+D_pipe4 = g("pipe4_diameter_in", 3.0) * IN_TO_M
+L_pipe4 = g("pipe4_length_ft", 0.0) * FT_TO_M
+eps_pipe4 = g("pipe4_roughness_mm", 0.01) * MM_TO_M
+K_pipe4 = g("pipe4_K_minor", 0.0)
+
+# Pipe segment 5 (inactive by default: L=0)
+D_pipe5 = g("pipe5_diameter_in", 3.0) * IN_TO_M
+L_pipe5 = g("pipe5_length_ft", 0.0) * FT_TO_M
+eps_pipe5 = g("pipe5_roughness_mm", 0.01) * MM_TO_M
+K_pipe5 = g("pipe5_K_minor", 0.0)
 
 # Elevation & receiver
 dz_total = g("elevation_change_ft", 0.0) * FT_TO_M
@@ -119,6 +140,7 @@ overrides = {
     "Cd_relief": Cd_relief,
     "D_relief": D_relief,
     "mdot_air_max": mdot_air_max,
+    "c_clearance": c_clearance,
     "rho_L": rho_L,
     "mu_L": mu_L,
     "D_valve": D_valve,
@@ -132,6 +154,18 @@ overrides = {
     "L_pipe2": L_pipe2,
     "eps_pipe2": eps_pipe2,
     "K_pipe2": K_pipe2,
+    "D_pipe3": D_pipe3,
+    "L_pipe3": L_pipe3,
+    "eps_pipe3": eps_pipe3,
+    "K_pipe3": K_pipe3,
+    "D_pipe4": D_pipe4,
+    "L_pipe4": L_pipe4,
+    "eps_pipe4": eps_pipe4,
+    "K_pipe4": K_pipe4,
+    "D_pipe5": D_pipe5,
+    "L_pipe5": L_pipe5,
+    "eps_pipe5": eps_pipe5,
+    "K_pipe5": K_pipe5,
     "dz_total": dz_total,
     "P_receiver": P_receiver,
     "V_liquid_min": V_liquid_min,

@@ -3,6 +3,80 @@
 All notable changes to this project will be documented in this file.
 
 ---
+## [2.1.0] — 2026-02-26
+
+### Phase: Model Accuracy, Dashboard UX, Equipment Analysis & File Server
+
+#### Tank Geometry Fix (TankerTransferV2.mo)
+- ✅ **V_tank now computed from geometry** — `V_tank = π × R² × L` (was a user-supplied parameter that ignored D_tank / L_tank)
+- ✅ Horizontal cylinder liquid level calculation — cubic approximation: `h/D = 0.0007 + 0.7788f + 0.2338f² − 0.0133f³`
+- ✅ Changing tank length now properly affects simulation physics
+
+#### Dynamic N-Pipe Support (dashboard.py)
+- ✅ Charts auto-detect active pipe segments (1–5) based on `dP > 0.01`
+- ✅ Added `COLORS` dict entries for seg3–seg5 (orange, purple, brown)
+- ✅ `PIPE_SEGMENTS` metadata list drives all chart builders dynamically
+- ✅ Pressure drop and Reynolds charts scale to however many pipes are configured
+
+#### PDF Report Generation (dashboard.py)
+- ✅ On-demand PDF report using Plotly → kaleido → PNG → matplotlib → PdfPages pipeline
+- ✅ Download buttons on both **Run Simulation** and **Past Results** pages
+- ✅ Pinned `kaleido==0.2.1` for Plotly 5.24.1 compatibility (kaleido 1.x breaks)
+
+#### Transfer Time Bug Fix (dashboard.py)
+- ✅ `compute_summary()` used `was_flowing = (flow > 1.0).cummax()` logic
+- ✅ Prevents false "flow stopped" detection during initial pressurization (flow=0 at t=0)
+- ✅ Transfer time now correctly shows when flow reaches zero AFTER it started
+
+#### Auto-Trim Charts (dashboard.py)
+- ✅ `trim_to_completion()` function trims time series to meaningful window
+- ✅ Window = transfer phase + pressure climb to 95% of max + 1 min margin
+- ✅ Applied to Individual Charts, Comparison Overlay, and Past Results pages
+- ✅ Eliminates 600 min of flat lines after transfer completes
+
+#### Default Value Changes
+- ✅ Hose length (pipe1_length_ft): 50 → 20 ft
+- ✅ min_liquid_volume_gal: 10 → 1 gal (all 3 presets)
+- ✅ YAML generator enforces `max(min_liquid_volume_gal, 1.0)` floor for solver stability
+
+#### CSV Export Updates (export_results_v2.py)
+- ✅ Added columns: v_pipe3–5, Re_pipe3–5, f_pipe3–5, dP_seg3–5
+- ✅ Now exports 42 columns total (was 30)
+
+#### Pump Suitability Analysis
+- ✅ Analyzed Predator 212cc (6.5 HP) centrifugal pump for high-viscosity service
+- ✅ Conclusion: **NOT suitable** — centrifugal pumps fail above ~50 cP; product is 200–2000 cP
+- ✅ `python/pump_report.py` — generates professional 1-page PDF report
+- ✅ Report saved to `data/downloads/Pump_Analysis_Report.pdf`
+
+#### File Server — Persistent Download Service (NEW)
+- ✅ `python/file_server.py` — Python HTTP server with styled directory listing
+- ✅ Docker Compose service: `file-server` (container: `simlab-file-server`)
+- ✅ **Port 8502** — always-on, `restart: unless-stopped`, 0.25 CPU / 128 MB
+- ✅ Serves `data/downloads/` — drop any file in, instantly available via URL
+- ✅ Purpose: stable download links for special-case reports (NOT simulation PDFs)
+- ✅ Current files served:
+  - `Pump_Analysis_Report.pdf` (60 KB)
+  - `Driver_Unloading_Data_Form.pdf` (45 KB)
+  - `Driver_Unloading_Sheet_V2.pdf` (30 KB)
+
+#### New/Modified Files
+- ✅ `python/file_server.py` — File download server script (NEW)
+- ✅ `python/pump_report.py` — Pump analysis PDF generator (NEW)
+- ✅ `python/dashboard.py` — Multiple enhancements (see above)
+- ✅ `python/requirements.txt` — Added `kaleido==0.2.1`
+- ✅ `scripts/export_results_v2.py` — Added pipe3–5 columns
+- ✅ `modelica/TankerTransferV2.mo` — Tank geometry computed from D×L
+- ✅ `docker-compose.yml` — Added `file-server` service on port 8502
+
+#### Port Map (Updated)
+
+| Port | Service | Container | Purpose |
+|------|---------|-----------|---------|
+| 8501 | visual-dashboard | simlab-dashboard | Streamlit dashboard (simulation UI) |
+| 8502 | file-server | simlab-file-server | Static file downloads (reports) |
+
+---
 ## [2.0.0] — 2026-02-21/22
 
 ### Phase: Comprehensive Parametric Study & Production Dashboard

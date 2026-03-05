@@ -31,10 +31,20 @@ It shares the Docker Engine but has zero overlap with existing containers, netwo
 │  │  │ :5678    │  │ :80/:443  │   │  │  │  NO PORTS        │   │  │
 │  │  └──────────┘  └───────────┘   │  │  └──────────────────┘   │  │
 │  │   net: root_default             │  │                          │  │
-│  │                                 │  │  net: simlab_network     │  │
-│  │   vols: hmdm_pgdata, hmdm_work │  │  vols: bind mounts only  │  │
-│  │         n8n_data, traefik_data  │  │  /opt/sim-lab/...        │  │
-│  └─────────────────────────────────┘  └──────────────────────────┘  │
+│  │                                 │  │  ┌──────────────────┐   │  │
+│  │   vols: hmdm_pgdata, hmdm_work │  │  │  dashboard       │   │  │
+│  │         n8n_data, traefik_data  │  │  │  :8501 (Streamlit)│  │  │
+│  └─────────────────────────────────┘  │  └──────────────────┘   │  │
+│                                       │                          │  │
+│                                       │  ┌──────────────────┐   │  │
+│                                       │  │  file-server     │   │  │
+│                                       │  │  :8502 (Downloads)│  │  │
+│                                       │  └──────────────────┘   │  │
+│                                       │                          │  │
+│                                       │  net: simlab_network     │  │
+│                                       │  vols: bind mounts only  │  │
+│                                       │  /opt/sim-lab/...        │  │
+│                                       └──────────────────────────┘  │
 │                                                                     │
 │  ┌─────────────────────────────────────────────────────────────────┐│
 │  │                     DOCKER ENGINE                               ││
@@ -42,7 +52,7 @@ It shares the Docker Engine but has zero overlap with existing containers, netwo
 │  │  - Separate COMPOSE_PROJECT_NAME                                 ││
 │  │  - Separate networks (no external)                               ││
 │  │  - Separate volumes (bind mounts only)                           ││
-│  │  - No published ports                                            ││
+│  │  - Published ports: 8501 (dashboard), 8502 (file server)         ││
 │  └─────────────────────────────────────────────────────────────────┘│
 └─────────────────────────────────────────────────────────────────────┘
 ```
@@ -68,7 +78,7 @@ It shares the Docker Engine but has zero overlap with existing containers, netwo
 | COMPOSE_PROJECT_NAME | `simlab` |
 | Project Root | `/opt/sim-lab/truck-tanker-sim-env` |
 | Network | `simlab_network` (internal bridge) |
-| Ports Published | **NONE** |
+| Ports Published | `8501` (dashboard), `8502` (file server) |
 | External Networks | **NONE** |
 
 ### 3. OpenModelica Container
@@ -92,7 +102,21 @@ It shares the Docker Engine but has zero overlap with existing containers, netwo
 | Network | `simlab_network` only |
 | Ports | NONE |
 
-### 5. Guard / Integrity Verification Layer
+### 5. File Server Container
+
+| Property | Value |
+|----------|-------|
+| Image | `python:3.12-slim` |
+| Container name | `simlab-file-server` |
+| Role | Serve downloadable reports (PDFs, PNGs, CSVs) on a stable URL |
+| Volumes | Bind mount: `./python:/work/python:ro`, `./data:/work/data` |
+| Network | `simlab_network` only |
+| Ports | `0.0.0.0:8502:8502` |
+| Serve directory | `data/downloads/` |
+| Resources | CPU: 0.25, Memory: 128 MB |
+| Restart | `unless-stopped` |
+
+### 6. Guard / Integrity Verification Layer
 
 | Property | Value |
 |----------|-------|
@@ -131,6 +155,6 @@ It shares the Docker Engine but has zero overlap with existing containers, netwo
 |-----------|-----------|
 | Network isolation | Dedicated `simlab_network`, no `external: true` |
 | Volume isolation | Bind mounts under `/opt/sim-lab/` only, no named Docker volumes |
-| Port isolation | Zero published ports |
+| Port isolation | Only 8501 (dashboard) and 8502 (file server) published |
 | Naming isolation | `COMPOSE_PROJECT_NAME=simlab` prevents collisions |
 | State verification | Guard script diffs before/after snapshots |

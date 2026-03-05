@@ -1,0 +1,251 @@
+study1|s1_tall_oil_rosin_19scfm_plant|s1_tall_oil_rosin_19scfm_plant.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,scfm=19,comp_type=plant
+study1|s1_tall_oil_rosin_19scfm_pto|s1_tall_oil_rosin_19scfm_pto.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,scfm=19,comp_type=pto
+study1|s1_tall_oil_rosin_25scfm_plant|s1_tall_oil_rosin_25scfm_plant.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,scfm=25,comp_type=plant
+study1|s1_tall_oil_rosin_25scfm_pto|s1_tall_oil_rosin_25scfm_pto.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,scfm=25,comp_type=pto
+study1|s1_tall_oil_rosin_30scfm_plant|s1_tall_oil_rosin_30scfm_plant.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,scfm=30,comp_type=plant
+study1|s1_tall_oil_rosin_30scfm_pto|s1_tall_oil_rosin_30scfm_pto.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,scfm=30,comp_type=pto
+study1|s1_tall_oil_rosin_40scfm_plant|s1_tall_oil_rosin_40scfm_plant.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,scfm=40,comp_type=plant
+study1|s1_tall_oil_rosin_40scfm_pto|s1_tall_oil_rosin_40scfm_pto.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,scfm=40,comp_type=pto
+study1|s1_tall_oil_rosin_50scfm_plant|s1_tall_oil_rosin_50scfm_plant.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,scfm=50,comp_type=plant
+study1|s1_tall_oil_rosin_50scfm_pto|s1_tall_oil_rosin_50scfm_pto.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,scfm=50,comp_type=pto
+study1|s1_tall_oil_rosin_75scfm_plant|s1_tall_oil_rosin_75scfm_plant.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,scfm=75,comp_type=plant
+study1|s1_tall_oil_rosin_75scfm_pto|s1_tall_oil_rosin_75scfm_pto.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,scfm=75,comp_type=pto
+study1|s1_tall_oil_rosin_100scfm_plant|s1_tall_oil_rosin_100scfm_plant.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,scfm=100,comp_type=plant
+study1|s1_tall_oil_rosin_100scfm_pto|s1_tall_oil_rosin_100scfm_pto.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,scfm=100,comp_type=pto
+study1|s1_perchloroethylene_19scfm_plant|s1_perchloroethylene_19scfm_plant.yaml|product=Perchloroethylene,cP=9900,sg=1.622,scfm=19,comp_type=plant
+study1|s1_perchloroethylene_19scfm_pto|s1_perchloroethylene_19scfm_pto.yaml|product=Perchloroethylene,cP=9900,sg=1.622,scfm=19,comp_type=pto
+study1|s1_perchloroethylene_25scfm_plant|s1_perchloroethylene_25scfm_plant.yaml|product=Perchloroethylene,cP=9900,sg=1.622,scfm=25,comp_type=plant
+study1|s1_perchloroethylene_25scfm_pto|s1_perchloroethylene_25scfm_pto.yaml|product=Perchloroethylene,cP=9900,sg=1.622,scfm=25,comp_type=pto
+study1|s1_perchloroethylene_30scfm_plant|s1_perchloroethylene_30scfm_plant.yaml|product=Perchloroethylene,cP=9900,sg=1.622,scfm=30,comp_type=plant
+study1|s1_perchloroethylene_30scfm_pto|s1_perchloroethylene_30scfm_pto.yaml|product=Perchloroethylene,cP=9900,sg=1.622,scfm=30,comp_type=pto
+study1|s1_perchloroethylene_40scfm_plant|s1_perchloroethylene_40scfm_plant.yaml|product=Perchloroethylene,cP=9900,sg=1.622,scfm=40,comp_type=plant
+study1|s1_perchloroethylene_40scfm_pto|s1_perchloroethylene_40scfm_pto.yaml|product=Perchloroethylene,cP=9900,sg=1.622,scfm=40,comp_type=pto
+study1|s1_perchloroethylene_50scfm_plant|s1_perchloroethylene_50scfm_plant.yaml|product=Perchloroethylene,cP=9900,sg=1.622,scfm=50,comp_type=plant
+study1|s1_perchloroethylene_50scfm_pto|s1_perchloroethylene_50scfm_pto.yaml|product=Perchloroethylene,cP=9900,sg=1.622,scfm=50,comp_type=pto
+study1|s1_perchloroethylene_75scfm_plant|s1_perchloroethylene_75scfm_plant.yaml|product=Perchloroethylene,cP=9900,sg=1.622,scfm=75,comp_type=plant
+study1|s1_perchloroethylene_75scfm_pto|s1_perchloroethylene_75scfm_pto.yaml|product=Perchloroethylene,cP=9900,sg=1.622,scfm=75,comp_type=pto
+study1|s1_perchloroethylene_100scfm_plant|s1_perchloroethylene_100scfm_plant.yaml|product=Perchloroethylene,cP=9900,sg=1.622,scfm=100,comp_type=plant
+study1|s1_perchloroethylene_100scfm_pto|s1_perchloroethylene_100scfm_pto.yaml|product=Perchloroethylene,cP=9900,sg=1.622,scfm=100,comp_type=pto
+study2|s2_ethylene_glycol_hose3in|s2_ethylene_glycol_hose3in.yaml|product=Ethylene Glycol,cP=16.1,sg=1.113,hose_in=3.0,valve_in=3.0
+study2|s2_ethylene_glycol_hose4in|s2_ethylene_glycol_hose4in.yaml|product=Ethylene Glycol,cP=16.1,sg=1.113,hose_in=4.0,valve_in=4.0
+study2|s2_resin_solution_hose3in|s2_resin_solution_hose3in.yaml|product=Resin Solution,cP=500,sg=1.05,hose_in=3.0,valve_in=3.0
+study2|s2_resin_solution_hose4in|s2_resin_solution_hose4in.yaml|product=Resin Solution,cP=500,sg=1.05,hose_in=4.0,valve_in=4.0
+study2|s2_sodium_silicate_hose3in|s2_sodium_silicate_hose3in.yaml|product=Sodium Silicate,cP=180,sg=1.39,hose_in=3.0,valve_in=3.0
+study2|s2_sodium_silicate_hose4in|s2_sodium_silicate_hose4in.yaml|product=Sodium Silicate,cP=180,sg=1.39,hose_in=4.0,valve_in=4.0
+study2|s2_biomass_hose3in|s2_biomass_hose3in.yaml|product=Biomass,cP=50,sg=1.05,hose_in=3.0,valve_in=3.0
+study2|s2_biomass_hose4in|s2_biomass_hose4in.yaml|product=Biomass,cP=50,sg=1.05,hose_in=4.0,valve_in=4.0
+study2|s2_diethylene_glycol_hose3in|s2_diethylene_glycol_hose3in.yaml|product=Diethylene Glycol,cP=30.2,sg=1.118,hose_in=3.0,valve_in=3.0
+study2|s2_diethylene_glycol_hose4in|s2_diethylene_glycol_hose4in.yaml|product=Diethylene Glycol,cP=30.2,sg=1.118,hose_in=4.0,valve_in=4.0
+study2|s2_doss_70_pg_hose3in|s2_doss_70_pg_hose3in.yaml|product=DOSS 70 PG,cP=200,sg=1.08,hose_in=3.0,valve_in=3.0
+study2|s2_doss_70_pg_hose4in|s2_doss_70_pg_hose4in.yaml|product=DOSS 70 PG,cP=200,sg=1.08,hose_in=4.0,valve_in=4.0
+study2|s2_nipol_1411_latex_hose3in|s2_nipol_1411_latex_hose3in.yaml|product=NIPOL 1411 LATEX,cP=200,sg=1.0,hose_in=3.0,valve_in=3.0
+study2|s2_nipol_1411_latex_hose4in|s2_nipol_1411_latex_hose4in.yaml|product=NIPOL 1411 LATEX,cP=200,sg=1.0,hose_in=4.0,valve_in=4.0
+study2|s2_smartcide_1984a_hose3in|s2_smartcide_1984a_hose3in.yaml|product=Smartcide 1984A,cP=5,sg=1.02,hose_in=3.0,valve_in=3.0
+study2|s2_smartcide_1984a_hose4in|s2_smartcide_1984a_hose4in.yaml|product=Smartcide 1984A,cP=5,sg=1.02,hose_in=4.0,valve_in=4.0
+study2|s2_transformer_oil_type_ii_hose3in|s2_transformer_oil_type_ii_hose3in.yaml|product=Transformer Oil Type II,cP=11,sg=0.88,hose_in=3.0,valve_in=3.0
+study2|s2_transformer_oil_type_ii_hose4in|s2_transformer_oil_type_ii_hose4in.yaml|product=Transformer Oil Type II,cP=11,sg=0.88,hose_in=4.0,valve_in=4.0
+study2|s2_used_motor_oil_hose3in|s2_used_motor_oil_hose3in.yaml|product=Used Motor Oil,cP=20,sg=0.88,hose_in=3.0,valve_in=3.0
+study2|s2_used_motor_oil_hose4in|s2_used_motor_oil_hose4in.yaml|product=Used Motor Oil,cP=20,sg=0.88,hose_in=4.0,valve_in=4.0
+study2|s2_ocd_hose3in|s2_ocd_hose3in.yaml|product=OCD,cP=0.6,sg=1.05,hose_in=3.0,valve_in=3.0
+study2|s2_ocd_hose4in|s2_ocd_hose4in.yaml|product=OCD,cP=0.6,sg=1.05,hose_in=4.0,valve_in=4.0
+study2|s2_triethylene_glycol_hose3in|s2_triethylene_glycol_hose3in.yaml|product=Triethylene Glycol,cP=37.3,sg=1.125,hose_in=3.0,valve_in=3.0
+study2|s2_triethylene_glycol_hose4in|s2_triethylene_glycol_hose4in.yaml|product=Triethylene Glycol,cP=37.3,sg=1.125,hose_in=4.0,valve_in=4.0
+study2|s2_propylene_glycol_hose3in|s2_propylene_glycol_hose3in.yaml|product=Propylene Glycol,cP=42,sg=1.036,hose_in=3.0,valve_in=3.0
+study2|s2_propylene_glycol_hose4in|s2_propylene_glycol_hose4in.yaml|product=Propylene Glycol,cP=42,sg=1.036,hose_in=4.0,valve_in=4.0
+study2|s2_tall_oil_rosin_hose3in|s2_tall_oil_rosin_hose3in.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,hose_in=3.0,valve_in=3.0
+study2|s2_tall_oil_rosin_hose4in|s2_tall_oil_rosin_hose4in.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,hose_in=4.0,valve_in=4.0
+study2|s2_vivatec_500_hose3in|s2_vivatec_500_hose3in.yaml|product=VIVATEC 500,cP=100,sg=0.99,hose_in=3.0,valve_in=3.0
+study2|s2_vivatec_500_hose4in|s2_vivatec_500_hose4in.yaml|product=VIVATEC 500,cP=100,sg=0.99,hose_in=4.0,valve_in=4.0
+study2|s2_wax_additive_c24_28_hose3in|s2_wax_additive_c24_28_hose3in.yaml|product=Wax Additive C24-28,cP=5,sg=0.8,hose_in=3.0,valve_in=3.0
+study2|s2_wax_additive_c24_28_hose4in|s2_wax_additive_c24_28_hose4in.yaml|product=Wax Additive C24-28,cP=5,sg=0.8,hose_in=4.0,valve_in=4.0
+study2|s2_kaolin_clay_hose3in|s2_kaolin_clay_hose3in.yaml|product=Kaolin Clay,cP=300,sg=1.15,hose_in=3.0,valve_in=3.0
+study2|s2_kaolin_clay_hose4in|s2_kaolin_clay_hose4in.yaml|product=Kaolin Clay,cP=300,sg=1.15,hose_in=4.0,valve_in=4.0
+study2|s2_crude_glycerin_hose3in|s2_crude_glycerin_hose3in.yaml|product=CRUDE GLYCERIN,cP=934,sg=1.261,hose_in=3.0,valve_in=3.0
+study2|s2_crude_glycerin_hose4in|s2_crude_glycerin_hose4in.yaml|product=CRUDE GLYCERIN,cP=934,sg=1.261,hose_in=4.0,valve_in=4.0
+study2|s2_tea_99_hose3in|s2_tea_99_hose3in.yaml|product=TEA 99,cP=590,sg=1.124,hose_in=3.0,valve_in=3.0
+study2|s2_tea_99_hose4in|s2_tea_99_hose4in.yaml|product=TEA 99,cP=590,sg=1.124,hose_in=4.0,valve_in=4.0
+study2|s2_perchloroethylene_hose3in|s2_perchloroethylene_hose3in.yaml|product=Perchloroethylene,cP=9900,sg=1.622,hose_in=3.0,valve_in=3.0
+study2|s2_perchloroethylene_hose4in|s2_perchloroethylene_hose4in.yaml|product=Perchloroethylene,cP=9900,sg=1.622,hose_in=4.0,valve_in=4.0
+study3|s3_breakeven_500cP|s3_breakeven_500cP.yaml|product=Generic 500cP,cP=500,sg=1.1
+study3|s3_breakeven_750cP|s3_breakeven_750cP.yaml|product=Generic 750cP,cP=750,sg=1.1
+study3|s3_breakeven_1000cP|s3_breakeven_1000cP.yaml|product=Generic 1000cP,cP=1000,sg=1.1
+study3|s3_breakeven_1250cP|s3_breakeven_1250cP.yaml|product=Generic 1250cP,cP=1250,sg=1.1
+study3|s3_breakeven_1500cP|s3_breakeven_1500cP.yaml|product=Generic 1500cP,cP=1500,sg=1.1
+study3|s3_breakeven_1750cP|s3_breakeven_1750cP.yaml|product=Generic 1750cP,cP=1750,sg=1.1
+study3|s3_breakeven_2000cP|s3_breakeven_2000cP.yaml|product=Generic 2000cP,cP=2000,sg=1.1
+study3|s3_breakeven_2500cP|s3_breakeven_2500cP.yaml|product=Generic 2500cP,cP=2500,sg=1.1
+study3|s3_breakeven_3000cP|s3_breakeven_3000cP.yaml|product=Generic 3000cP,cP=3000,sg=1.1
+study3|s3_breakeven_3500cP|s3_breakeven_3500cP.yaml|product=Generic 3500cP,cP=3500,sg=1.1
+study3|s3_breakeven_4000cP|s3_breakeven_4000cP.yaml|product=Generic 4000cP,cP=4000,sg=1.1
+study3|s3_breakeven_4500cP|s3_breakeven_4500cP.yaml|product=Generic 4500cP,cP=4500,sg=1.1
+study3|s3_breakeven_5000cP|s3_breakeven_5000cP.yaml|product=Generic 5000cP,cP=5000,sg=1.1
+study4|s4_tall_oil_rosin_19scfm_h3_v3|s4_tall_oil_rosin_19scfm_h3_v3.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,scfm=19,hose_in=3.0,valve_in=3.0
+study4|s4_tall_oil_rosin_19scfm_h4_v3|s4_tall_oil_rosin_19scfm_h4_v3.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,scfm=19,hose_in=4.0,valve_in=3.0
+study4|s4_tall_oil_rosin_19scfm_h4_v4|s4_tall_oil_rosin_19scfm_h4_v4.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,scfm=19,hose_in=4.0,valve_in=4.0
+study4|s4_tall_oil_rosin_30scfm_h3_v3|s4_tall_oil_rosin_30scfm_h3_v3.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,scfm=30,hose_in=3.0,valve_in=3.0
+study4|s4_tall_oil_rosin_30scfm_h4_v3|s4_tall_oil_rosin_30scfm_h4_v3.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,scfm=30,hose_in=4.0,valve_in=3.0
+study4|s4_tall_oil_rosin_30scfm_h4_v4|s4_tall_oil_rosin_30scfm_h4_v4.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,scfm=30,hose_in=4.0,valve_in=4.0
+study4|s4_tall_oil_rosin_50scfm_h3_v3|s4_tall_oil_rosin_50scfm_h3_v3.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,scfm=50,hose_in=3.0,valve_in=3.0
+study4|s4_tall_oil_rosin_50scfm_h4_v3|s4_tall_oil_rosin_50scfm_h4_v3.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,scfm=50,hose_in=4.0,valve_in=3.0
+study4|s4_tall_oil_rosin_50scfm_h4_v4|s4_tall_oil_rosin_50scfm_h4_v4.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,scfm=50,hose_in=4.0,valve_in=4.0
+study4|s4_perchloroethylene_19scfm_h3_v3|s4_perchloroethylene_19scfm_h3_v3.yaml|product=Perchloroethylene,cP=9900,sg=1.622,scfm=19,hose_in=3.0,valve_in=3.0
+study4|s4_perchloroethylene_19scfm_h4_v3|s4_perchloroethylene_19scfm_h4_v3.yaml|product=Perchloroethylene,cP=9900,sg=1.622,scfm=19,hose_in=4.0,valve_in=3.0
+study4|s4_perchloroethylene_19scfm_h4_v4|s4_perchloroethylene_19scfm_h4_v4.yaml|product=Perchloroethylene,cP=9900,sg=1.622,scfm=19,hose_in=4.0,valve_in=4.0
+study4|s4_perchloroethylene_30scfm_h3_v3|s4_perchloroethylene_30scfm_h3_v3.yaml|product=Perchloroethylene,cP=9900,sg=1.622,scfm=30,hose_in=3.0,valve_in=3.0
+study4|s4_perchloroethylene_30scfm_h4_v3|s4_perchloroethylene_30scfm_h4_v3.yaml|product=Perchloroethylene,cP=9900,sg=1.622,scfm=30,hose_in=4.0,valve_in=3.0
+study4|s4_perchloroethylene_30scfm_h4_v4|s4_perchloroethylene_30scfm_h4_v4.yaml|product=Perchloroethylene,cP=9900,sg=1.622,scfm=30,hose_in=4.0,valve_in=4.0
+study4|s4_perchloroethylene_50scfm_h3_v3|s4_perchloroethylene_50scfm_h3_v3.yaml|product=Perchloroethylene,cP=9900,sg=1.622,scfm=50,hose_in=3.0,valve_in=3.0
+study4|s4_perchloroethylene_50scfm_h4_v3|s4_perchloroethylene_50scfm_h4_v3.yaml|product=Perchloroethylene,cP=9900,sg=1.622,scfm=50,hose_in=4.0,valve_in=3.0
+study4|s4_perchloroethylene_50scfm_h4_v4|s4_perchloroethylene_50scfm_h4_v4.yaml|product=Perchloroethylene,cP=9900,sg=1.622,scfm=50,hose_in=4.0,valve_in=4.0
+study5|s5_ocd_2000gal|s5_ocd_2000gal.yaml|product=OCD,cP=0.6,sg=1.05,volume_gal=2000
+study5|s5_ocd_3000gal|s5_ocd_3000gal.yaml|product=OCD,cP=0.6,sg=1.05,volume_gal=3000
+study5|s5_ocd_4000gal|s5_ocd_4000gal.yaml|product=OCD,cP=0.6,sg=1.05,volume_gal=4000
+study5|s5_ocd_5000gal|s5_ocd_5000gal.yaml|product=OCD,cP=0.6,sg=1.05,volume_gal=5000
+study5|s5_ocd_6500gal|s5_ocd_6500gal.yaml|product=OCD,cP=0.6,sg=1.05,volume_gal=6500
+study5|s5_ethylene_glycol_2000gal|s5_ethylene_glycol_2000gal.yaml|product=Ethylene Glycol,cP=16.1,sg=1.113,volume_gal=2000
+study5|s5_ethylene_glycol_3000gal|s5_ethylene_glycol_3000gal.yaml|product=Ethylene Glycol,cP=16.1,sg=1.113,volume_gal=3000
+study5|s5_ethylene_glycol_4000gal|s5_ethylene_glycol_4000gal.yaml|product=Ethylene Glycol,cP=16.1,sg=1.113,volume_gal=4000
+study5|s5_ethylene_glycol_5000gal|s5_ethylene_glycol_5000gal.yaml|product=Ethylene Glycol,cP=16.1,sg=1.113,volume_gal=5000
+study5|s5_ethylene_glycol_6500gal|s5_ethylene_glycol_6500gal.yaml|product=Ethylene Glycol,cP=16.1,sg=1.113,volume_gal=6500
+study5|s5_biomass_2000gal|s5_biomass_2000gal.yaml|product=Biomass,cP=50,sg=1.05,volume_gal=2000
+study5|s5_biomass_3000gal|s5_biomass_3000gal.yaml|product=Biomass,cP=50,sg=1.05,volume_gal=3000
+study5|s5_biomass_4000gal|s5_biomass_4000gal.yaml|product=Biomass,cP=50,sg=1.05,volume_gal=4000
+study5|s5_biomass_5000gal|s5_biomass_5000gal.yaml|product=Biomass,cP=50,sg=1.05,volume_gal=5000
+study5|s5_biomass_6500gal|s5_biomass_6500gal.yaml|product=Biomass,cP=50,sg=1.05,volume_gal=6500
+study5|s5_doss_70_pg_2000gal|s5_doss_70_pg_2000gal.yaml|product=DOSS 70 PG,cP=200,sg=1.08,volume_gal=2000
+study5|s5_doss_70_pg_3000gal|s5_doss_70_pg_3000gal.yaml|product=DOSS 70 PG,cP=200,sg=1.08,volume_gal=3000
+study5|s5_doss_70_pg_4000gal|s5_doss_70_pg_4000gal.yaml|product=DOSS 70 PG,cP=200,sg=1.08,volume_gal=4000
+study5|s5_doss_70_pg_5000gal|s5_doss_70_pg_5000gal.yaml|product=DOSS 70 PG,cP=200,sg=1.08,volume_gal=5000
+study5|s5_doss_70_pg_6500gal|s5_doss_70_pg_6500gal.yaml|product=DOSS 70 PG,cP=200,sg=1.08,volume_gal=6500
+study5|s5_resin_solution_2000gal|s5_resin_solution_2000gal.yaml|product=Resin Solution,cP=500,sg=1.05,volume_gal=2000
+study5|s5_resin_solution_3000gal|s5_resin_solution_3000gal.yaml|product=Resin Solution,cP=500,sg=1.05,volume_gal=3000
+study5|s5_resin_solution_4000gal|s5_resin_solution_4000gal.yaml|product=Resin Solution,cP=500,sg=1.05,volume_gal=4000
+study5|s5_resin_solution_5000gal|s5_resin_solution_5000gal.yaml|product=Resin Solution,cP=500,sg=1.05,volume_gal=5000
+study5|s5_resin_solution_6500gal|s5_resin_solution_6500gal.yaml|product=Resin Solution,cP=500,sg=1.05,volume_gal=6500
+study5|s5_crude_glycerin_2000gal|s5_crude_glycerin_2000gal.yaml|product=CRUDE GLYCERIN,cP=934,sg=1.261,volume_gal=2000
+study5|s5_crude_glycerin_3000gal|s5_crude_glycerin_3000gal.yaml|product=CRUDE GLYCERIN,cP=934,sg=1.261,volume_gal=3000
+study5|s5_crude_glycerin_4000gal|s5_crude_glycerin_4000gal.yaml|product=CRUDE GLYCERIN,cP=934,sg=1.261,volume_gal=4000
+study5|s5_crude_glycerin_5000gal|s5_crude_glycerin_5000gal.yaml|product=CRUDE GLYCERIN,cP=934,sg=1.261,volume_gal=5000
+study5|s5_crude_glycerin_6500gal|s5_crude_glycerin_6500gal.yaml|product=CRUDE GLYCERIN,cP=934,sg=1.261,volume_gal=6500
+study5|s5_tall_oil_rosin_2000gal|s5_tall_oil_rosin_2000gal.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,volume_gal=2000
+study5|s5_tall_oil_rosin_3000gal|s5_tall_oil_rosin_3000gal.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,volume_gal=3000
+study5|s5_tall_oil_rosin_4000gal|s5_tall_oil_rosin_4000gal.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,volume_gal=4000
+study5|s5_tall_oil_rosin_5000gal|s5_tall_oil_rosin_5000gal.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,volume_gal=5000
+study5|s5_tall_oil_rosin_6500gal|s5_tall_oil_rosin_6500gal.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,volume_gal=6500
+study5|s5_perchloroethylene_2000gal|s5_perchloroethylene_2000gal.yaml|product=Perchloroethylene,cP=9900,sg=1.622,volume_gal=2000
+study5|s5_perchloroethylene_3000gal|s5_perchloroethylene_3000gal.yaml|product=Perchloroethylene,cP=9900,sg=1.622,volume_gal=3000
+study5|s5_perchloroethylene_4000gal|s5_perchloroethylene_4000gal.yaml|product=Perchloroethylene,cP=9900,sg=1.622,volume_gal=4000
+study5|s5_perchloroethylene_5000gal|s5_perchloroethylene_5000gal.yaml|product=Perchloroethylene,cP=9900,sg=1.622,volume_gal=5000
+study5|s5_perchloroethylene_6500gal|s5_perchloroethylene_6500gal.yaml|product=Perchloroethylene,cP=9900,sg=1.622,volume_gal=6500
+study6|s6_ocd_elev0ft_bp5psi|s6_ocd_elev0ft_bp5psi.yaml|product=OCD,cP=0.6,sg=1.05,elevation_ft=0,backpressure_psig=5
+study6|s6_ocd_elev0ft_bp10psi|s6_ocd_elev0ft_bp10psi.yaml|product=OCD,cP=0.6,sg=1.05,elevation_ft=0,backpressure_psig=10
+study6|s6_ocd_elev5ft_bp0psi|s6_ocd_elev5ft_bp0psi.yaml|product=OCD,cP=0.6,sg=1.05,elevation_ft=5,backpressure_psig=0
+study6|s6_ocd_elev5ft_bp5psi|s6_ocd_elev5ft_bp5psi.yaml|product=OCD,cP=0.6,sg=1.05,elevation_ft=5,backpressure_psig=5
+study6|s6_ocd_elev5ft_bp10psi|s6_ocd_elev5ft_bp10psi.yaml|product=OCD,cP=0.6,sg=1.05,elevation_ft=5,backpressure_psig=10
+study6|s6_ocd_elev10ft_bp0psi|s6_ocd_elev10ft_bp0psi.yaml|product=OCD,cP=0.6,sg=1.05,elevation_ft=10,backpressure_psig=0
+study6|s6_ocd_elev10ft_bp5psi|s6_ocd_elev10ft_bp5psi.yaml|product=OCD,cP=0.6,sg=1.05,elevation_ft=10,backpressure_psig=5
+study6|s6_ocd_elev10ft_bp10psi|s6_ocd_elev10ft_bp10psi.yaml|product=OCD,cP=0.6,sg=1.05,elevation_ft=10,backpressure_psig=10
+study6|s6_ocd_elev15ft_bp0psi|s6_ocd_elev15ft_bp0psi.yaml|product=OCD,cP=0.6,sg=1.05,elevation_ft=15,backpressure_psig=0
+study6|s6_ocd_elev15ft_bp5psi|s6_ocd_elev15ft_bp5psi.yaml|product=OCD,cP=0.6,sg=1.05,elevation_ft=15,backpressure_psig=5
+study6|s6_ocd_elev15ft_bp10psi|s6_ocd_elev15ft_bp10psi.yaml|product=OCD,cP=0.6,sg=1.05,elevation_ft=15,backpressure_psig=10
+study6|s6_ocd_elev20ft_bp0psi|s6_ocd_elev20ft_bp0psi.yaml|product=OCD,cP=0.6,sg=1.05,elevation_ft=20,backpressure_psig=0
+study6|s6_ocd_elev20ft_bp5psi|s6_ocd_elev20ft_bp5psi.yaml|product=OCD,cP=0.6,sg=1.05,elevation_ft=20,backpressure_psig=5
+study6|s6_ocd_elev20ft_bp10psi|s6_ocd_elev20ft_bp10psi.yaml|product=OCD,cP=0.6,sg=1.05,elevation_ft=20,backpressure_psig=10
+study6|s6_ethylene_glycol_elev0ft_bp5psi|s6_ethylene_glycol_elev0ft_bp5psi.yaml|product=Ethylene Glycol,cP=16.1,sg=1.113,elevation_ft=0,backpressure_psig=5
+study6|s6_ethylene_glycol_elev0ft_bp10psi|s6_ethylene_glycol_elev0ft_bp10psi.yaml|product=Ethylene Glycol,cP=16.1,sg=1.113,elevation_ft=0,backpressure_psig=10
+study6|s6_ethylene_glycol_elev5ft_bp0psi|s6_ethylene_glycol_elev5ft_bp0psi.yaml|product=Ethylene Glycol,cP=16.1,sg=1.113,elevation_ft=5,backpressure_psig=0
+study6|s6_ethylene_glycol_elev5ft_bp5psi|s6_ethylene_glycol_elev5ft_bp5psi.yaml|product=Ethylene Glycol,cP=16.1,sg=1.113,elevation_ft=5,backpressure_psig=5
+study6|s6_ethylene_glycol_elev5ft_bp10psi|s6_ethylene_glycol_elev5ft_bp10psi.yaml|product=Ethylene Glycol,cP=16.1,sg=1.113,elevation_ft=5,backpressure_psig=10
+study6|s6_ethylene_glycol_elev10ft_bp0psi|s6_ethylene_glycol_elev10ft_bp0psi.yaml|product=Ethylene Glycol,cP=16.1,sg=1.113,elevation_ft=10,backpressure_psig=0
+study6|s6_ethylene_glycol_elev10ft_bp5psi|s6_ethylene_glycol_elev10ft_bp5psi.yaml|product=Ethylene Glycol,cP=16.1,sg=1.113,elevation_ft=10,backpressure_psig=5
+study6|s6_ethylene_glycol_elev10ft_bp10psi|s6_ethylene_glycol_elev10ft_bp10psi.yaml|product=Ethylene Glycol,cP=16.1,sg=1.113,elevation_ft=10,backpressure_psig=10
+study6|s6_ethylene_glycol_elev15ft_bp0psi|s6_ethylene_glycol_elev15ft_bp0psi.yaml|product=Ethylene Glycol,cP=16.1,sg=1.113,elevation_ft=15,backpressure_psig=0
+study6|s6_ethylene_glycol_elev15ft_bp5psi|s6_ethylene_glycol_elev15ft_bp5psi.yaml|product=Ethylene Glycol,cP=16.1,sg=1.113,elevation_ft=15,backpressure_psig=5
+study6|s6_ethylene_glycol_elev15ft_bp10psi|s6_ethylene_glycol_elev15ft_bp10psi.yaml|product=Ethylene Glycol,cP=16.1,sg=1.113,elevation_ft=15,backpressure_psig=10
+study6|s6_ethylene_glycol_elev20ft_bp0psi|s6_ethylene_glycol_elev20ft_bp0psi.yaml|product=Ethylene Glycol,cP=16.1,sg=1.113,elevation_ft=20,backpressure_psig=0
+study6|s6_ethylene_glycol_elev20ft_bp5psi|s6_ethylene_glycol_elev20ft_bp5psi.yaml|product=Ethylene Glycol,cP=16.1,sg=1.113,elevation_ft=20,backpressure_psig=5
+study6|s6_ethylene_glycol_elev20ft_bp10psi|s6_ethylene_glycol_elev20ft_bp10psi.yaml|product=Ethylene Glycol,cP=16.1,sg=1.113,elevation_ft=20,backpressure_psig=10
+study6|s6_biomass_elev0ft_bp5psi|s6_biomass_elev0ft_bp5psi.yaml|product=Biomass,cP=50,sg=1.05,elevation_ft=0,backpressure_psig=5
+study6|s6_biomass_elev0ft_bp10psi|s6_biomass_elev0ft_bp10psi.yaml|product=Biomass,cP=50,sg=1.05,elevation_ft=0,backpressure_psig=10
+study6|s6_biomass_elev5ft_bp0psi|s6_biomass_elev5ft_bp0psi.yaml|product=Biomass,cP=50,sg=1.05,elevation_ft=5,backpressure_psig=0
+study6|s6_biomass_elev5ft_bp5psi|s6_biomass_elev5ft_bp5psi.yaml|product=Biomass,cP=50,sg=1.05,elevation_ft=5,backpressure_psig=5
+study6|s6_biomass_elev5ft_bp10psi|s6_biomass_elev5ft_bp10psi.yaml|product=Biomass,cP=50,sg=1.05,elevation_ft=5,backpressure_psig=10
+study6|s6_biomass_elev10ft_bp0psi|s6_biomass_elev10ft_bp0psi.yaml|product=Biomass,cP=50,sg=1.05,elevation_ft=10,backpressure_psig=0
+study6|s6_biomass_elev10ft_bp5psi|s6_biomass_elev10ft_bp5psi.yaml|product=Biomass,cP=50,sg=1.05,elevation_ft=10,backpressure_psig=5
+study6|s6_biomass_elev10ft_bp10psi|s6_biomass_elev10ft_bp10psi.yaml|product=Biomass,cP=50,sg=1.05,elevation_ft=10,backpressure_psig=10
+study6|s6_biomass_elev15ft_bp0psi|s6_biomass_elev15ft_bp0psi.yaml|product=Biomass,cP=50,sg=1.05,elevation_ft=15,backpressure_psig=0
+study6|s6_biomass_elev15ft_bp5psi|s6_biomass_elev15ft_bp5psi.yaml|product=Biomass,cP=50,sg=1.05,elevation_ft=15,backpressure_psig=5
+study6|s6_biomass_elev15ft_bp10psi|s6_biomass_elev15ft_bp10psi.yaml|product=Biomass,cP=50,sg=1.05,elevation_ft=15,backpressure_psig=10
+study6|s6_biomass_elev20ft_bp0psi|s6_biomass_elev20ft_bp0psi.yaml|product=Biomass,cP=50,sg=1.05,elevation_ft=20,backpressure_psig=0
+study6|s6_biomass_elev20ft_bp5psi|s6_biomass_elev20ft_bp5psi.yaml|product=Biomass,cP=50,sg=1.05,elevation_ft=20,backpressure_psig=5
+study6|s6_biomass_elev20ft_bp10psi|s6_biomass_elev20ft_bp10psi.yaml|product=Biomass,cP=50,sg=1.05,elevation_ft=20,backpressure_psig=10
+study6|s6_doss_70_pg_elev0ft_bp5psi|s6_doss_70_pg_elev0ft_bp5psi.yaml|product=DOSS 70 PG,cP=200,sg=1.08,elevation_ft=0,backpressure_psig=5
+study6|s6_doss_70_pg_elev0ft_bp10psi|s6_doss_70_pg_elev0ft_bp10psi.yaml|product=DOSS 70 PG,cP=200,sg=1.08,elevation_ft=0,backpressure_psig=10
+study6|s6_doss_70_pg_elev5ft_bp0psi|s6_doss_70_pg_elev5ft_bp0psi.yaml|product=DOSS 70 PG,cP=200,sg=1.08,elevation_ft=5,backpressure_psig=0
+study6|s6_doss_70_pg_elev5ft_bp5psi|s6_doss_70_pg_elev5ft_bp5psi.yaml|product=DOSS 70 PG,cP=200,sg=1.08,elevation_ft=5,backpressure_psig=5
+study6|s6_doss_70_pg_elev5ft_bp10psi|s6_doss_70_pg_elev5ft_bp10psi.yaml|product=DOSS 70 PG,cP=200,sg=1.08,elevation_ft=5,backpressure_psig=10
+study6|s6_doss_70_pg_elev10ft_bp0psi|s6_doss_70_pg_elev10ft_bp0psi.yaml|product=DOSS 70 PG,cP=200,sg=1.08,elevation_ft=10,backpressure_psig=0
+study6|s6_doss_70_pg_elev10ft_bp5psi|s6_doss_70_pg_elev10ft_bp5psi.yaml|product=DOSS 70 PG,cP=200,sg=1.08,elevation_ft=10,backpressure_psig=5
+study6|s6_doss_70_pg_elev10ft_bp10psi|s6_doss_70_pg_elev10ft_bp10psi.yaml|product=DOSS 70 PG,cP=200,sg=1.08,elevation_ft=10,backpressure_psig=10
+study6|s6_doss_70_pg_elev15ft_bp0psi|s6_doss_70_pg_elev15ft_bp0psi.yaml|product=DOSS 70 PG,cP=200,sg=1.08,elevation_ft=15,backpressure_psig=0
+study6|s6_doss_70_pg_elev15ft_bp5psi|s6_doss_70_pg_elev15ft_bp5psi.yaml|product=DOSS 70 PG,cP=200,sg=1.08,elevation_ft=15,backpressure_psig=5
+study6|s6_doss_70_pg_elev15ft_bp10psi|s6_doss_70_pg_elev15ft_bp10psi.yaml|product=DOSS 70 PG,cP=200,sg=1.08,elevation_ft=15,backpressure_psig=10
+study6|s6_doss_70_pg_elev20ft_bp0psi|s6_doss_70_pg_elev20ft_bp0psi.yaml|product=DOSS 70 PG,cP=200,sg=1.08,elevation_ft=20,backpressure_psig=0
+study6|s6_doss_70_pg_elev20ft_bp5psi|s6_doss_70_pg_elev20ft_bp5psi.yaml|product=DOSS 70 PG,cP=200,sg=1.08,elevation_ft=20,backpressure_psig=5
+study6|s6_doss_70_pg_elev20ft_bp10psi|s6_doss_70_pg_elev20ft_bp10psi.yaml|product=DOSS 70 PG,cP=200,sg=1.08,elevation_ft=20,backpressure_psig=10
+study6|s6_resin_solution_elev0ft_bp5psi|s6_resin_solution_elev0ft_bp5psi.yaml|product=Resin Solution,cP=500,sg=1.05,elevation_ft=0,backpressure_psig=5
+study6|s6_resin_solution_elev0ft_bp10psi|s6_resin_solution_elev0ft_bp10psi.yaml|product=Resin Solution,cP=500,sg=1.05,elevation_ft=0,backpressure_psig=10
+study6|s6_resin_solution_elev5ft_bp0psi|s6_resin_solution_elev5ft_bp0psi.yaml|product=Resin Solution,cP=500,sg=1.05,elevation_ft=5,backpressure_psig=0
+study6|s6_resin_solution_elev5ft_bp5psi|s6_resin_solution_elev5ft_bp5psi.yaml|product=Resin Solution,cP=500,sg=1.05,elevation_ft=5,backpressure_psig=5
+study6|s6_resin_solution_elev5ft_bp10psi|s6_resin_solution_elev5ft_bp10psi.yaml|product=Resin Solution,cP=500,sg=1.05,elevation_ft=5,backpressure_psig=10
+study6|s6_resin_solution_elev10ft_bp0psi|s6_resin_solution_elev10ft_bp0psi.yaml|product=Resin Solution,cP=500,sg=1.05,elevation_ft=10,backpressure_psig=0
+study6|s6_resin_solution_elev10ft_bp5psi|s6_resin_solution_elev10ft_bp5psi.yaml|product=Resin Solution,cP=500,sg=1.05,elevation_ft=10,backpressure_psig=5
+study6|s6_resin_solution_elev10ft_bp10psi|s6_resin_solution_elev10ft_bp10psi.yaml|product=Resin Solution,cP=500,sg=1.05,elevation_ft=10,backpressure_psig=10
+study6|s6_resin_solution_elev15ft_bp0psi|s6_resin_solution_elev15ft_bp0psi.yaml|product=Resin Solution,cP=500,sg=1.05,elevation_ft=15,backpressure_psig=0
+study6|s6_resin_solution_elev15ft_bp5psi|s6_resin_solution_elev15ft_bp5psi.yaml|product=Resin Solution,cP=500,sg=1.05,elevation_ft=15,backpressure_psig=5
+study6|s6_resin_solution_elev15ft_bp10psi|s6_resin_solution_elev15ft_bp10psi.yaml|product=Resin Solution,cP=500,sg=1.05,elevation_ft=15,backpressure_psig=10
+study6|s6_resin_solution_elev20ft_bp0psi|s6_resin_solution_elev20ft_bp0psi.yaml|product=Resin Solution,cP=500,sg=1.05,elevation_ft=20,backpressure_psig=0
+study6|s6_resin_solution_elev20ft_bp5psi|s6_resin_solution_elev20ft_bp5psi.yaml|product=Resin Solution,cP=500,sg=1.05,elevation_ft=20,backpressure_psig=5
+study6|s6_resin_solution_elev20ft_bp10psi|s6_resin_solution_elev20ft_bp10psi.yaml|product=Resin Solution,cP=500,sg=1.05,elevation_ft=20,backpressure_psig=10
+study6|s6_crude_glycerin_elev0ft_bp5psi|s6_crude_glycerin_elev0ft_bp5psi.yaml|product=CRUDE GLYCERIN,cP=934,sg=1.261,elevation_ft=0,backpressure_psig=5
+study6|s6_crude_glycerin_elev0ft_bp10psi|s6_crude_glycerin_elev0ft_bp10psi.yaml|product=CRUDE GLYCERIN,cP=934,sg=1.261,elevation_ft=0,backpressure_psig=10
+study6|s6_crude_glycerin_elev5ft_bp0psi|s6_crude_glycerin_elev5ft_bp0psi.yaml|product=CRUDE GLYCERIN,cP=934,sg=1.261,elevation_ft=5,backpressure_psig=0
+study6|s6_crude_glycerin_elev5ft_bp5psi|s6_crude_glycerin_elev5ft_bp5psi.yaml|product=CRUDE GLYCERIN,cP=934,sg=1.261,elevation_ft=5,backpressure_psig=5
+study6|s6_crude_glycerin_elev5ft_bp10psi|s6_crude_glycerin_elev5ft_bp10psi.yaml|product=CRUDE GLYCERIN,cP=934,sg=1.261,elevation_ft=5,backpressure_psig=10
+study6|s6_crude_glycerin_elev10ft_bp0psi|s6_crude_glycerin_elev10ft_bp0psi.yaml|product=CRUDE GLYCERIN,cP=934,sg=1.261,elevation_ft=10,backpressure_psig=0
+study6|s6_crude_glycerin_elev10ft_bp5psi|s6_crude_glycerin_elev10ft_bp5psi.yaml|product=CRUDE GLYCERIN,cP=934,sg=1.261,elevation_ft=10,backpressure_psig=5
+study6|s6_crude_glycerin_elev10ft_bp10psi|s6_crude_glycerin_elev10ft_bp10psi.yaml|product=CRUDE GLYCERIN,cP=934,sg=1.261,elevation_ft=10,backpressure_psig=10
+study6|s6_crude_glycerin_elev15ft_bp0psi|s6_crude_glycerin_elev15ft_bp0psi.yaml|product=CRUDE GLYCERIN,cP=934,sg=1.261,elevation_ft=15,backpressure_psig=0
+study6|s6_crude_glycerin_elev15ft_bp5psi|s6_crude_glycerin_elev15ft_bp5psi.yaml|product=CRUDE GLYCERIN,cP=934,sg=1.261,elevation_ft=15,backpressure_psig=5
+study6|s6_crude_glycerin_elev15ft_bp10psi|s6_crude_glycerin_elev15ft_bp10psi.yaml|product=CRUDE GLYCERIN,cP=934,sg=1.261,elevation_ft=15,backpressure_psig=10
+study6|s6_crude_glycerin_elev20ft_bp0psi|s6_crude_glycerin_elev20ft_bp0psi.yaml|product=CRUDE GLYCERIN,cP=934,sg=1.261,elevation_ft=20,backpressure_psig=0
+study6|s6_crude_glycerin_elev20ft_bp5psi|s6_crude_glycerin_elev20ft_bp5psi.yaml|product=CRUDE GLYCERIN,cP=934,sg=1.261,elevation_ft=20,backpressure_psig=5
+study6|s6_crude_glycerin_elev20ft_bp10psi|s6_crude_glycerin_elev20ft_bp10psi.yaml|product=CRUDE GLYCERIN,cP=934,sg=1.261,elevation_ft=20,backpressure_psig=10
+study6|s6_tall_oil_rosin_elev0ft_bp5psi|s6_tall_oil_rosin_elev0ft_bp5psi.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,elevation_ft=0,backpressure_psig=5
+study6|s6_tall_oil_rosin_elev0ft_bp10psi|s6_tall_oil_rosin_elev0ft_bp10psi.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,elevation_ft=0,backpressure_psig=10
+study6|s6_tall_oil_rosin_elev5ft_bp0psi|s6_tall_oil_rosin_elev5ft_bp0psi.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,elevation_ft=5,backpressure_psig=0
+study6|s6_tall_oil_rosin_elev5ft_bp5psi|s6_tall_oil_rosin_elev5ft_bp5psi.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,elevation_ft=5,backpressure_psig=5
+study6|s6_tall_oil_rosin_elev5ft_bp10psi|s6_tall_oil_rosin_elev5ft_bp10psi.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,elevation_ft=5,backpressure_psig=10
+study6|s6_tall_oil_rosin_elev10ft_bp0psi|s6_tall_oil_rosin_elev10ft_bp0psi.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,elevation_ft=10,backpressure_psig=0
+study6|s6_tall_oil_rosin_elev10ft_bp5psi|s6_tall_oil_rosin_elev10ft_bp5psi.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,elevation_ft=10,backpressure_psig=5
+study6|s6_tall_oil_rosin_elev10ft_bp10psi|s6_tall_oil_rosin_elev10ft_bp10psi.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,elevation_ft=10,backpressure_psig=10
+study6|s6_tall_oil_rosin_elev15ft_bp0psi|s6_tall_oil_rosin_elev15ft_bp0psi.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,elevation_ft=15,backpressure_psig=0
+study6|s6_tall_oil_rosin_elev15ft_bp5psi|s6_tall_oil_rosin_elev15ft_bp5psi.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,elevation_ft=15,backpressure_psig=5
+study6|s6_tall_oil_rosin_elev15ft_bp10psi|s6_tall_oil_rosin_elev15ft_bp10psi.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,elevation_ft=15,backpressure_psig=10
+study6|s6_tall_oil_rosin_elev20ft_bp0psi|s6_tall_oil_rosin_elev20ft_bp0psi.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,elevation_ft=20,backpressure_psig=0
+study6|s6_tall_oil_rosin_elev20ft_bp5psi|s6_tall_oil_rosin_elev20ft_bp5psi.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,elevation_ft=20,backpressure_psig=5
+study6|s6_tall_oil_rosin_elev20ft_bp10psi|s6_tall_oil_rosin_elev20ft_bp10psi.yaml|product=Tall Oil Rosin,cP=5000,sg=1.07,elevation_ft=20,backpressure_psig=10
+study6|s6_perchloroethylene_elev0ft_bp5psi|s6_perchloroethylene_elev0ft_bp5psi.yaml|product=Perchloroethylene,cP=9900,sg=1.622,elevation_ft=0,backpressure_psig=5
+study6|s6_perchloroethylene_elev0ft_bp10psi|s6_perchloroethylene_elev0ft_bp10psi.yaml|product=Perchloroethylene,cP=9900,sg=1.622,elevation_ft=0,backpressure_psig=10
+study6|s6_perchloroethylene_elev5ft_bp0psi|s6_perchloroethylene_elev5ft_bp0psi.yaml|product=Perchloroethylene,cP=9900,sg=1.622,elevation_ft=5,backpressure_psig=0
+study6|s6_perchloroethylene_elev5ft_bp5psi|s6_perchloroethylene_elev5ft_bp5psi.yaml|product=Perchloroethylene,cP=9900,sg=1.622,elevation_ft=5,backpressure_psig=5
+study6|s6_perchloroethylene_elev5ft_bp10psi|s6_perchloroethylene_elev5ft_bp10psi.yaml|product=Perchloroethylene,cP=9900,sg=1.622,elevation_ft=5,backpressure_psig=10
+study6|s6_perchloroethylene_elev10ft_bp0psi|s6_perchloroethylene_elev10ft_bp0psi.yaml|product=Perchloroethylene,cP=9900,sg=1.622,elevation_ft=10,backpressure_psig=0
+study6|s6_perchloroethylene_elev10ft_bp5psi|s6_perchloroethylene_elev10ft_bp5psi.yaml|product=Perchloroethylene,cP=9900,sg=1.622,elevation_ft=10,backpressure_psig=5
+study6|s6_perchloroethylene_elev10ft_bp10psi|s6_perchloroethylene_elev10ft_bp10psi.yaml|product=Perchloroethylene,cP=9900,sg=1.622,elevation_ft=10,backpressure_psig=10
+study6|s6_perchloroethylene_elev15ft_bp0psi|s6_perchloroethylene_elev15ft_bp0psi.yaml|product=Perchloroethylene,cP=9900,sg=1.622,elevation_ft=15,backpressure_psig=0
+study6|s6_perchloroethylene_elev15ft_bp5psi|s6_perchloroethylene_elev15ft_bp5psi.yaml|product=Perchloroethylene,cP=9900,sg=1.622,elevation_ft=15,backpressure_psig=5
+study6|s6_perchloroethylene_elev15ft_bp10psi|s6_perchloroethylene_elev15ft_bp10psi.yaml|product=Perchloroethylene,cP=9900,sg=1.622,elevation_ft=15,backpressure_psig=10
+study6|s6_perchloroethylene_elev20ft_bp0psi|s6_perchloroethylene_elev20ft_bp0psi.yaml|product=Perchloroethylene,cP=9900,sg=1.622,elevation_ft=20,backpressure_psig=0
+study6|s6_perchloroethylene_elev20ft_bp5psi|s6_perchloroethylene_elev20ft_bp5psi.yaml|product=Perchloroethylene,cP=9900,sg=1.622,elevation_ft=20,backpressure_psig=5
+study6|s6_perchloroethylene_elev20ft_bp10psi|s6_perchloroethylene_elev20ft_bp10psi.yaml|product=Perchloroethylene,cP=9900,sg=1.622,elevation_ft=20,backpressure_psig=10

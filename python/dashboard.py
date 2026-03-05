@@ -15,6 +15,7 @@ Usage (via Docker Compose):
 
 import os
 import re
+import io
 import json
 import glob
 import time
@@ -47,7 +48,19 @@ COLORS = {
     "valve": "#FF6692",
     "seg1": "#19D3F3",
     "seg2": "#B6E880",
+    "seg3": "#FECB52",
+    "seg4": "#FF97FF",
+    "seg5": "#FFA15A",
 }
+
+# Pipe segment metadata for dynamic chart building
+PIPE_SEGMENTS = [
+    {"idx": 1, "re": "Re_pipe1", "dp": "dP_seg1", "color": "seg1", "label": "Pipe 1"},
+    {"idx": 2, "re": "Re_pipe2", "dp": "dP_seg2", "color": "seg2", "label": "Pipe 2"},
+    {"idx": 3, "re": "Re_pipe3", "dp": "dP_seg3", "color": "seg3", "label": "Pipe 3"},
+    {"idx": 4, "re": "Re_pipe4", "dp": "dP_seg4", "color": "seg4", "label": "Pipe 4"},
+    {"idx": 5, "re": "Re_pipe5", "dp": "dP_seg5", "color": "seg5", "label": "Pipe 5"},
+]
 
 PSI_CONV = 6894.76
 
@@ -65,10 +78,10 @@ PRESETS = {
         "air_supply_scfm": 19.0,
         "liquid_density_kg_m3": 1050.0, "liquid_viscosity_cP": 100.0,
         "valve_diameter_in": 3.0, "valve_K_open": 0.2, "valve_opening_fraction": 1.0,
-        "pipe1_diameter_in": 3.0, "pipe1_length_ft": 25.0, "pipe1_roughness_mm": 0.01, "pipe1_K_minor": 1.5,
-        "pipe2_diameter_in": 3.0, "pipe2_length_ft": 25.0, "pipe2_roughness_mm": 0.01, "pipe2_K_minor": 1.0,
+        "num_pipes": 1,
+        "pipe1_diameter_in": 3.0, "pipe1_length_ft": 20.0, "pipe1_roughness_mm": 0.01, "pipe1_K_minor": 2.5,
         "elevation_change_ft": 0.0, "receiver_pressure_psig": 0.0,
-        "stop_time_s": 5400, "output_interval_s": 1.0, "min_liquid_volume_gal": 10.0,
+        "stop_time_s": 5400, "output_interval_s": 1.0, "min_liquid_volume_gal": 1.0,
     },
     "Solvent — Low Viscosity (1 cP)": {
         "tank_total_volume_gal": 7000, "tank_diameter_in": 75.0, "tank_length_ft": 30.5,
@@ -79,10 +92,10 @@ PRESETS = {
         "air_supply_scfm": 19.0,
         "liquid_density_kg_m3": 850.0, "liquid_viscosity_cP": 1.0,
         "valve_diameter_in": 3.0, "valve_K_open": 0.2, "valve_opening_fraction": 1.0,
-        "pipe1_diameter_in": 3.0, "pipe1_length_ft": 25.0, "pipe1_roughness_mm": 0.01, "pipe1_K_minor": 1.5,
-        "pipe2_diameter_in": 3.0, "pipe2_length_ft": 25.0, "pipe2_roughness_mm": 0.01, "pipe2_K_minor": 1.0,
+        "num_pipes": 1,
+        "pipe1_diameter_in": 3.0, "pipe1_length_ft": 20.0, "pipe1_roughness_mm": 0.01, "pipe1_K_minor": 2.5,
         "elevation_change_ft": 0.0, "receiver_pressure_psig": 0.0,
-        "stop_time_s": 3600, "output_interval_s": 1.0, "min_liquid_volume_gal": 10.0,
+        "stop_time_s": 3600, "output_interval_s": 1.0, "min_liquid_volume_gal": 1.0,
     },
     "Coating — High Viscosity (500 cP)": {
         "tank_total_volume_gal": 7000, "tank_diameter_in": 75.0, "tank_length_ft": 30.5,
@@ -93,10 +106,11 @@ PRESETS = {
         "air_supply_scfm": 19.0,
         "liquid_density_kg_m3": 1200.0, "liquid_viscosity_cP": 500.0,
         "valve_diameter_in": 2.0, "valve_K_open": 0.3, "valve_opening_fraction": 1.0,
+        "num_pipes": 2,
         "pipe1_diameter_in": 2.0, "pipe1_length_ft": 30.0, "pipe1_roughness_mm": 0.01, "pipe1_K_minor": 2.0,
         "pipe2_diameter_in": 2.0, "pipe2_length_ft": 30.0, "pipe2_roughness_mm": 0.01, "pipe2_K_minor": 1.5,
         "elevation_change_ft": 3.0, "receiver_pressure_psig": 0.0,
-        "stop_time_s": 10800, "output_interval_s": 2.0, "min_liquid_volume_gal": 10.0,
+        "stop_time_s": 10800, "output_interval_s": 2.0, "min_liquid_volume_gal": 1.0,
     },
 }
 
@@ -179,17 +193,28 @@ def generate_yaml_config(params: dict, scenario_name: str) -> str:
         f"valve_K_open: {params['valve_K_open']}",
         f"valve_opening_fraction: {params['valve_opening_fraction']}",
         f"",
-        f"# Pipe Segment 1",
+        f"# Pipe Segments (num_pipes: {int(params.get('num_pipes', 1))})",
+        f"num_pipes: {int(params.get('num_pipes', 1))}",
         f"pipe1_diameter_in: {params['pipe1_diameter_in']}",
         f"pipe1_length_ft: {params['pipe1_length_ft']}",
         f"pipe1_roughness_mm: {params['pipe1_roughness_mm']}",
         f"pipe1_K_minor: {params['pipe1_K_minor']}",
-        f"",
-        f"# Pipe Segment 2",
-        f"pipe2_diameter_in: {params['pipe2_diameter_in']}",
-        f"pipe2_length_ft: {params['pipe2_length_ft']}",
-        f"pipe2_roughness_mm: {params['pipe2_roughness_mm']}",
-        f"pipe2_K_minor: {params['pipe2_K_minor']}",
+        f"pipe2_diameter_in: {params.get('pipe2_diameter_in', 3.0)}",
+        f"pipe2_length_ft: {params.get('pipe2_length_ft', 0.0)}",
+        f"pipe2_roughness_mm: {params.get('pipe2_roughness_mm', 0.01)}",
+        f"pipe2_K_minor: {params.get('pipe2_K_minor', 0.0)}",
+        f"pipe3_diameter_in: {params.get('pipe3_diameter_in', 3.0)}",
+        f"pipe3_length_ft: {params.get('pipe3_length_ft', 0.0)}",
+        f"pipe3_roughness_mm: {params.get('pipe3_roughness_mm', 0.01)}",
+        f"pipe3_K_minor: {params.get('pipe3_K_minor', 0.0)}",
+        f"pipe4_diameter_in: {params.get('pipe4_diameter_in', 3.0)}",
+        f"pipe4_length_ft: {params.get('pipe4_length_ft', 0.0)}",
+        f"pipe4_roughness_mm: {params.get('pipe4_roughness_mm', 0.01)}",
+        f"pipe4_K_minor: {params.get('pipe4_K_minor', 0.0)}",
+        f"pipe5_diameter_in: {params.get('pipe5_diameter_in', 3.0)}",
+        f"pipe5_length_ft: {params.get('pipe5_length_ft', 0.0)}",
+        f"pipe5_roughness_mm: {params.get('pipe5_roughness_mm', 0.01)}",
+        f"pipe5_K_minor: {params.get('pipe5_K_minor', 0.0)}",
         f"",
         f"# Elevation & Receiver",
         f"elevation_change_ft: {params['elevation_change_ft']}",
@@ -198,7 +223,9 @@ def generate_yaml_config(params: dict, scenario_name: str) -> str:
         f"# Simulation",
         f"stop_time_s: {int(params['stop_time_s'])}",
         f"output_interval_s: {params['output_interval_s']}",
-        f"min_liquid_volume_gal: {params['min_liquid_volume_gal']}",
+        # Enforce a minimum floor of 1 gal for numerical stability —
+        # prevents solver singularity when V_liquid → 0 exactly.
+        f"min_liquid_volume_gal: {max(params['min_liquid_volume_gal'], 1.0)}",
     ]
     return "\n".join(lines)
 
@@ -318,28 +345,34 @@ def build_engineering_charts(df, scenario=""):
     """Build detailed engineering charts: pressure drops, Reynolds, level."""
     charts = []
 
-    # Pressure drops
-    if all(c in df.columns for c in ["dP_valve", "dP_seg1", "dP_seg2"]):
+    # Pressure drops — dynamic: only show active pipe segments
+    if "dP_valve" in df.columns and "dP_seg1" in df.columns:
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=df["time_min"], y=df["dP_valve"] / PSI_CONV,
             mode="lines", name="Valve", line=dict(color=COLORS["valve"])))
-        fig.add_trace(go.Scatter(x=df["time_min"], y=df["dP_seg1"] / PSI_CONV,
-            mode="lines", name="Pipe 1", line=dict(color=COLORS["seg1"])))
-        fig.add_trace(go.Scatter(x=df["time_min"], y=df["dP_seg2"] / PSI_CONV,
-            mode="lines", name="Pipe 2", line=dict(color=COLORS["seg2"])))
+        for seg in PIPE_SEGMENTS:
+            col = seg["dp"]
+            if col in df.columns and df[col].abs().max() > 0.01:
+                fig.add_trace(go.Scatter(x=df["time_min"], y=df[col] / PSI_CONV,
+                    mode="lines", name=seg["label"], line=dict(color=COLORS[seg["color"]])))
         fig.update_layout(title="Pressure Drops by Component",
             xaxis_title="Time (min)", yaxis_title="ΔP (psi)",
             template="plotly_white", height=400)
         charts.append(fig)
 
-    # Reynolds numbers
-    if "Re_pipe1" in df.columns:
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(x=df["time_min"], y=df["Re_pipe1"],
-            mode="lines", name="Pipe 1", line=dict(color=COLORS["seg1"])))
-        if "Re_pipe2" in df.columns:
-            fig.add_trace(go.Scatter(x=df["time_min"], y=df["Re_pipe2"],
-                mode="lines", name="Pipe 2", line=dict(color=COLORS["seg2"])))
+    # Reynolds numbers — dynamic: only show segments with non-zero pressure drop
+    re_plotted = False
+    fig = go.Figure()
+    for seg in PIPE_SEGMENTS:
+        col = seg["re"]
+        dp_col = seg["dp"]
+        # A pipe is "active" when its pressure-drop column has significant values
+        active = (dp_col in df.columns and df[dp_col].abs().max() > 0.01)
+        if col in df.columns and active:
+            fig.add_trace(go.Scatter(x=df["time_min"], y=df[col],
+                mode="lines", name=seg["label"], line=dict(color=COLORS[seg["color"]])))
+            re_plotted = True
+    if re_plotted:
         fig.add_hline(y=2300, line_dash="dash", line_color="red",
             annotation_text="Laminar→Transition")
         fig.add_hline(y=4000, line_dash="dash", line_color="orange",
@@ -379,6 +412,172 @@ def build_engineering_charts(df, scenario=""):
     return charts
 
 
+# =============================================================================
+# PDF REPORT GENERATOR
+# =============================================================================
+
+
+def generate_pdf_report(
+    df: pd.DataFrame,
+    scenario: str,
+    summary: dict,
+    params: dict | None = None,
+) -> bytes:
+    """Generate a PDF report with all simulation charts and metrics.
+
+    Uses Plotly's kaleido engine to export charts as images, then assembles
+    them into a multi-page PDF using matplotlib.  Called on-demand only.
+
+    Returns PDF as bytes (ready for st.download_button).
+    """
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from matplotlib.backends.backend_pdf import PdfPages
+    from matplotlib.table import Table
+
+    buf = io.BytesIO()
+
+    with PdfPages(buf) as pdf:
+        # ==== PAGE 1: Title + Summary + Parameters ====
+        fig_page, ax = plt.subplots(figsize=(11, 8.5))  # landscape letter
+        ax.axis("off")
+
+        # Company logo (if exists)
+        logo_path = Path("/work/data/assets/logo.png")
+        if not logo_path.exists():
+            for ext in ("jpg", "jpeg", "svg", "webp"):
+                alt = logo_path.with_suffix(f".{ext}")
+                if alt.exists():
+                    logo_path = alt
+                    break
+        if logo_path.exists() and logo_path.suffix != ".svg":
+            try:
+                logo_img = plt.imread(str(logo_path))
+                logo_ax = fig_page.add_axes([0.02, 0.85, 0.15, 0.12])
+                logo_ax.imshow(logo_img)
+                logo_ax.axis("off")
+            except Exception:
+                pass
+
+        # Title
+        ax.text(0.5, 0.92, "Tanker Unloading Simulation Report",
+                ha="center", va="top", fontsize=22, fontweight="bold")
+        ax.text(0.5, 0.87, f"Scenario: {scenario}",
+                ha="center", va="top", fontsize=14, color="#444")
+        ax.text(0.5, 0.83, f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}",
+                ha="center", va="top", fontsize=10, color="#888")
+
+        # Summary metrics table
+        ax.text(0.5, 0.76, "Key Metrics", ha="center", va="top",
+                fontsize=14, fontweight="bold")
+        summary_items = list(summary.items())
+        cell_data = [[k, str(v)] for k, v in summary_items]
+        tbl = ax.table(
+            cellText=cell_data,
+            colLabels=["Metric", "Value"],
+            loc="center",
+            cellLoc="center",
+            bbox=[0.15, 0.40, 0.70, 0.34],
+        )
+        tbl.auto_set_font_size(False)
+        tbl.set_fontsize(11)
+        for key, cell in tbl.get_celld().items():
+            if key[0] == 0:
+                cell.set_facecolor("#2C3E50")
+                cell.set_text_props(color="white", fontweight="bold")
+            else:
+                cell.set_facecolor("#F8F9FA" if key[0] % 2 == 0 else "white")
+            cell.set_edgecolor("#DEE2E6")
+
+        # Parameters table (if provided)
+        if params:
+            ax.text(0.5, 0.36, "Simulation Parameters", ha="center", va="top",
+                    fontsize=14, fontweight="bold")
+            # Select key parameters to show
+            key_params = [
+                ("Tank Volume (gal)", params.get("tank_total_volume_gal", "—")),
+                ("Liquid Volume (gal)", params.get("initial_liquid_volume_gal", "—")),
+                ("Density (kg/m³)", params.get("liquid_density_kg_m3", "—")),
+                ("Viscosity (cP)", params.get("liquid_viscosity_cP", "—")),
+                ("Air Supply (SCFM)", params.get("air_supply_scfm", "—")),
+                ("Max Pressure (psig)", params.get("max_tank_pressure_psig", "—")),
+                ("Valve Diameter (in)", params.get("valve_diameter_in", "—")),
+                ("Pipe 1", f"{params.get('pipe1_diameter_in', '—')}\" × {params.get('pipe1_length_ft', '—')} ft"),
+            ]
+            # Add pipe2-5 only if active
+            for i in range(2, 6):
+                L = params.get(f"pipe{i}_length_ft", 0)
+                if L and float(L) > 0:
+                    key_params.append((
+                        f"Pipe {i}",
+                        f"{params.get(f'pipe{i}_diameter_in', '—')}\" × {L} ft"
+                    ))
+
+            param_data = [[k, str(v)] for k, v in key_params]
+            tbl2 = ax.table(
+                cellText=param_data,
+                colLabels=["Parameter", "Value"],
+                loc="center",
+                cellLoc="center",
+                bbox=[0.15, 0.02, 0.70, min(0.32, 0.04 * (len(param_data) + 1))],
+            )
+            tbl2.auto_set_font_size(False)
+            tbl2.set_fontsize(10)
+            for key, cell in tbl2.get_celld().items():
+                if key[0] == 0:
+                    cell.set_facecolor("#2C3E50")
+                    cell.set_text_props(color="white", fontweight="bold")
+                else:
+                    cell.set_facecolor("#F8F9FA" if key[0] % 2 == 0 else "white")
+                cell.set_edgecolor("#DEE2E6")
+
+        pdf.savefig(fig_page, dpi=150)
+        plt.close(fig_page)
+
+        # ==== CHART PAGES ====
+        # Collect all chart figures
+        all_figs = [
+            ("Tank Pressure", build_pressure_chart(df, scenario)),
+            ("Liquid Flow Rate", build_flow_chart(df, scenario)),
+            ("Volume Remaining", build_volume_remaining_chart(df, scenario)),
+            ("Volume Transferred", build_volume_transferred_chart(df, scenario)),
+        ]
+        eng_figs = build_engineering_charts(df, scenario)
+        for ef in eng_figs:
+            title = ef.layout.title.text if ef.layout.title and ef.layout.title.text else "Engineering Detail"
+            all_figs.append((title, ef))
+
+        # Render 2 charts per page
+        for i in range(0, len(all_figs), 2):
+            fig_page, axes = plt.subplots(2, 1, figsize=(11, 8.5))
+            for j, ax in enumerate(axes):
+                idx = i + j
+                if idx < len(all_figs):
+                    chart_title, plotly_fig = all_figs[idx]
+                    try:
+                        img_bytes = plotly_fig.to_image(
+                            format="png", width=1000, height=400, scale=2
+                        )
+                        from PIL import Image
+                        img = Image.open(io.BytesIO(img_bytes))
+                        ax.imshow(img)
+                        ax.axis("off")
+                    except Exception as e:
+                        ax.text(0.5, 0.5, f"Chart unavailable: {chart_title}\n{e}",
+                                ha="center", va="center", fontsize=12, color="red")
+                        ax.axis("off")
+                else:
+                    ax.axis("off")
+
+            fig_page.tight_layout(pad=0.5)
+            pdf.savefig(fig_page, dpi=150)
+            plt.close(fig_page)
+
+    buf.seek(0)
+    return buf.read()
+
+
 def compute_summary(df: pd.DataFrame) -> dict:
     """Compute key summary metrics from simulation results."""
     col_q = "Q_total_gpm" if "Q_total_gpm" in df.columns else "Q_L_gpm"
@@ -389,9 +588,13 @@ def compute_summary(df: pd.DataFrame) -> dict:
     summary["Final Remaining (gal)"] = f"{df['V_liquid_gal'].iloc[-1]:.0f}"
 
     # Find time when flow effectively stops (< 1 GPM)
-    low_flow = df[df[col_q] < 1.0]
-    if len(low_flow) > 0 and low_flow.index[0] > 10:
-        t = df.loc[low_flow.index[0], "time_min"]
+    # Must find where flow drops below 1 GPM AFTER it was flowing (>1 GPM),
+    # to skip the initial zero-flow pressurization period.
+    flow = df[col_q]
+    was_flowing = (flow > 1.0).cummax()  # True once flow has exceeded 1 GPM
+    stopped = was_flowing & (flow < 1.0)  # True after flow started AND dropped back below 1
+    if stopped.any():
+        t = df.loc[stopped.idxmax(), "time_min"]
         summary["Transfer Time (min)"] = f"{t:.1f}"
     else:
         t = df['time_min'].iloc[-1]
@@ -408,6 +611,55 @@ def compute_summary(df: pd.DataFrame) -> dict:
         summary["Flow Regime"] = regime
 
     return summary
+
+
+def trim_to_completion(df: pd.DataFrame) -> pd.DataFrame:
+    """Trim simulation data to the meaningful window.
+
+    Logic:
+    1. Find when flow stops (tank empty).
+    2. After that, find when pressure reaches the relief/max limit.
+    3. Trim dataframe to that point + a small margin.
+    If flow never stops, return the full dataframe.
+    """
+    col_q = "Q_total_gpm" if "Q_total_gpm" in df.columns else "Q_L_gpm"
+    flow = df[col_q]
+    pressure = df["P_tank_psig"]
+
+    # Step 1: Find when flow stops after it started
+    was_flowing = (flow > 1.0).cummax()
+    stopped = was_flowing & (flow < 1.0)
+    if not stopped.any():
+        return df  # Still flowing — show everything
+
+    stop_idx = stopped.idxmax()
+
+    # Step 2: After flow stops, find when pressure reaches its max
+    # (relief valve limit or max_tank_pressure)
+    post_flow = df.loc[stop_idx:]
+    if len(post_flow) < 2:
+        return df
+
+    # Find peak pressure after flow stops
+    p_max_post = post_flow["P_tank_psig"].max()
+    # Find where it first reaches within 95% of that peak
+    # (accounts for relief valve oscillation)
+    threshold = p_max_post * 0.95
+    reached = post_flow[post_flow["P_tank_psig"] >= threshold]
+    if reached.empty:
+        return df
+
+    end_idx = reached.index[0]
+
+    # Add 1-minute margin after reaching pressure limit
+    end_time = df.loc[end_idx, "time_min"] + 1.0
+    trimmed = df[df["time_min"] <= end_time]
+
+    # Safety: never return less than the transfer portion
+    if len(trimmed) < len(df.loc[:stop_idx]):
+        return df.loc[:stop_idx]
+
+    return trimmed
 
 
 def calc_pressurization_time(
@@ -591,9 +843,17 @@ def page_run_simulation():
             help="1.0 = fully open, 0.5 = half open. Partially closing reduces flow rate.")
 
     with tab_pipe:
-        st.caption("The hose/pipe from the tank to the receiving vessel. Split into two segments (e.g., tank-to-ground and ground-to-receiver).")
+        st.caption("The hose/pipe from the tank to the receiving vessel. Add pipe segments for each distinct section of your piping run.")
 
-        st.subheader("Pipe Segment 1 — Tank to Ground")
+        num_pipes = st.number_input(
+            "🔧 Number of Pipe Segments", min_value=1, max_value=5,
+            value=int(defaults.get("num_pipes", 1)), step=1,
+            key="num_pipes",
+            help="How many distinct pipe/hose sections between the tank and receiver? Default is 1. Add more if diameter or material changes along the run.")
+        params["num_pipes"] = num_pipes
+
+        # --- Pipe Segment 1 (always shown) ---
+        st.subheader("Pipe Segment 1")
         c1, c2, c3, c4 = st.columns(4)
         params["pipe1_diameter_in"] = c1.number_input(
             "Pipe Diameter (in)", min_value=0.5, max_value=8.0,
@@ -612,24 +872,109 @@ def page_run_simulation():
             value=float(defaults["pipe1_K_minor"]), step=0.5, format="%.1f",
             key="p1k", help="Add up resistance values for all elbows, couplings, and fittings in this section. See table below.")
 
-        st.subheader("Pipe Segment 2 — Ground to Receiver")
-        c1, c2, c3, c4 = st.columns(4)
-        params["pipe2_diameter_in"] = c1.number_input(
-            "Pipe Diameter (in)", min_value=0.5, max_value=8.0,
-            value=float(defaults["pipe2_diameter_in"]), step=0.5, format="%.1f",
-            key="p2d", help="Inside diameter of the hose/pipe. Common sizes: 2\", 3\", 4\".")
-        params["pipe2_length_ft"] = c2.number_input(
-            "Hose Length (ft)", min_value=1.0, max_value=200.0,
-            value=float(defaults["pipe2_length_ft"]), step=5.0, format="%.1f",
-            key="p2l", help="Total length of this pipe/hose section.")
-        params["pipe2_roughness_mm"] = c3.number_input(
-            "Wall Roughness (mm)", min_value=0.001, max_value=1.0,
-            value=float(defaults["pipe2_roughness_mm"]), step=0.01, format="%.3f",
-            key="p2r", help="How rough the inside wall is. Smooth rubber hose ≈ 0.01, Steel pipe ≈ 0.045")
-        params["pipe2_K_minor"] = c4.number_input(
-            "Fittings Resistance", min_value=0.0, max_value=20.0,
-            value=float(defaults["pipe2_K_minor"]), step=0.5, format="%.1f",
-            key="p2k", help="Add up resistance values for all elbows, couplings, and fittings in this section.")
+        # --- Pipe Segment 2 ---
+        if num_pipes >= 2:
+            st.subheader("Pipe Segment 2")
+            c1, c2, c3, c4 = st.columns(4)
+            params["pipe2_diameter_in"] = c1.number_input(
+                "Pipe Diameter (in)", min_value=0.5, max_value=8.0,
+                value=float(defaults.get("pipe2_diameter_in", 3.0)), step=0.5, format="%.1f",
+                key="p2d")
+            params["pipe2_length_ft"] = c2.number_input(
+                "Hose Length (ft)", min_value=1.0, max_value=200.0,
+                value=float(defaults.get("pipe2_length_ft", 25.0)), step=5.0, format="%.1f",
+                key="p2l")
+            params["pipe2_roughness_mm"] = c3.number_input(
+                "Wall Roughness (mm)", min_value=0.001, max_value=1.0,
+                value=float(defaults.get("pipe2_roughness_mm", 0.01)), step=0.01, format="%.3f",
+                key="p2r")
+            params["pipe2_K_minor"] = c4.number_input(
+                "Fittings Resistance", min_value=0.0, max_value=20.0,
+                value=float(defaults.get("pipe2_K_minor", 1.0)), step=0.5, format="%.1f",
+                key="p2k")
+        else:
+            params["pipe2_diameter_in"] = 3.0
+            params["pipe2_length_ft"] = 0.0
+            params["pipe2_roughness_mm"] = 0.01
+            params["pipe2_K_minor"] = 0.0
+
+        # --- Pipe Segment 3 ---
+        if num_pipes >= 3:
+            st.subheader("Pipe Segment 3")
+            c1, c2, c3, c4 = st.columns(4)
+            params["pipe3_diameter_in"] = c1.number_input(
+                "Pipe Diameter (in)", min_value=0.5, max_value=8.0,
+                value=float(defaults.get("pipe3_diameter_in", 3.0)), step=0.5, format="%.1f",
+                key="p3d")
+            params["pipe3_length_ft"] = c2.number_input(
+                "Hose Length (ft)", min_value=1.0, max_value=200.0,
+                value=float(defaults.get("pipe3_length_ft", 25.0)), step=5.0, format="%.1f",
+                key="p3l")
+            params["pipe3_roughness_mm"] = c3.number_input(
+                "Wall Roughness (mm)", min_value=0.001, max_value=1.0,
+                value=float(defaults.get("pipe3_roughness_mm", 0.01)), step=0.01, format="%.3f",
+                key="p3r")
+            params["pipe3_K_minor"] = c4.number_input(
+                "Fittings Resistance", min_value=0.0, max_value=20.0,
+                value=float(defaults.get("pipe3_K_minor", 1.0)), step=0.5, format="%.1f",
+                key="p3k")
+        else:
+            params["pipe3_diameter_in"] = 3.0
+            params["pipe3_length_ft"] = 0.0
+            params["pipe3_roughness_mm"] = 0.01
+            params["pipe3_K_minor"] = 0.0
+
+        # --- Pipe Segment 4 ---
+        if num_pipes >= 4:
+            st.subheader("Pipe Segment 4")
+            c1, c2, c3, c4 = st.columns(4)
+            params["pipe4_diameter_in"] = c1.number_input(
+                "Pipe Diameter (in)", min_value=0.5, max_value=8.0,
+                value=float(defaults.get("pipe4_diameter_in", 3.0)), step=0.5, format="%.1f",
+                key="p4d")
+            params["pipe4_length_ft"] = c2.number_input(
+                "Hose Length (ft)", min_value=1.0, max_value=200.0,
+                value=float(defaults.get("pipe4_length_ft", 25.0)), step=5.0, format="%.1f",
+                key="p4l")
+            params["pipe4_roughness_mm"] = c3.number_input(
+                "Wall Roughness (mm)", min_value=0.001, max_value=1.0,
+                value=float(defaults.get("pipe4_roughness_mm", 0.01)), step=0.01, format="%.3f",
+                key="p4r")
+            params["pipe4_K_minor"] = c4.number_input(
+                "Fittings Resistance", min_value=0.0, max_value=20.0,
+                value=float(defaults.get("pipe4_K_minor", 1.0)), step=0.5, format="%.1f",
+                key="p4k")
+        else:
+            params["pipe4_diameter_in"] = 3.0
+            params["pipe4_length_ft"] = 0.0
+            params["pipe4_roughness_mm"] = 0.01
+            params["pipe4_K_minor"] = 0.0
+
+        # --- Pipe Segment 5 ---
+        if num_pipes >= 5:
+            st.subheader("Pipe Segment 5")
+            c1, c2, c3, c4 = st.columns(4)
+            params["pipe5_diameter_in"] = c1.number_input(
+                "Pipe Diameter (in)", min_value=0.5, max_value=8.0,
+                value=float(defaults.get("pipe5_diameter_in", 3.0)), step=0.5, format="%.1f",
+                key="p5d")
+            params["pipe5_length_ft"] = c2.number_input(
+                "Hose Length (ft)", min_value=1.0, max_value=200.0,
+                value=float(defaults.get("pipe5_length_ft", 25.0)), step=5.0, format="%.1f",
+                key="p5l")
+            params["pipe5_roughness_mm"] = c3.number_input(
+                "Wall Roughness (mm)", min_value=0.001, max_value=1.0,
+                value=float(defaults.get("pipe5_roughness_mm", 0.01)), step=0.01, format="%.3f",
+                key="p5r")
+            params["pipe5_K_minor"] = c4.number_input(
+                "Fittings Resistance", min_value=0.0, max_value=20.0,
+                value=float(defaults.get("pipe5_K_minor", 1.0)), step=0.5, format="%.1f",
+                key="p5k")
+        else:
+            params["pipe5_diameter_in"] = 3.0
+            params["pipe5_length_ft"] = 0.0
+            params["pipe5_roughness_mm"] = 0.01
+            params["pipe5_K_minor"] = 0.0
 
         st.info("""
         **How to calculate Fittings Resistance:** Add up the values for every fitting in your hose run:
@@ -769,8 +1114,11 @@ def page_run_simulation():
 
         df = load_csv(st.session_state["latest_run_csv"])
 
-        # Summary metrics
+        # Summary metrics (computed on full data)
         summary = compute_summary(df)
+
+        # Trim data to meaningful window for charts
+        df_plot = trim_to_completion(df)
 
         # Calculate & inject pressurization time if starting pressure > 0
         press_time_min = calc_pressurization_time(
@@ -791,28 +1139,62 @@ def page_run_simulation():
         for i, (label, value) in enumerate(summary.items()):
             cols[i].metric(label, value)
 
-        # Charts
+        # Charts (use trimmed data)
         c1, c2 = st.columns(2)
         with c1:
-            st.plotly_chart(build_pressure_chart(df), use_container_width=True)
+            st.plotly_chart(build_pressure_chart(df_plot), use_container_width=True)
         with c2:
-            st.plotly_chart(build_flow_chart(df), use_container_width=True)
+            st.plotly_chart(build_flow_chart(df_plot), use_container_width=True)
 
         c1, c2 = st.columns(2)
         with c1:
-            st.plotly_chart(build_volume_remaining_chart(df), use_container_width=True)
+            st.plotly_chart(build_volume_remaining_chart(df_plot), use_container_width=True)
         with c2:
-            st.plotly_chart(build_volume_transferred_chart(df), use_container_width=True)
+            st.plotly_chart(build_volume_transferred_chart(df_plot), use_container_width=True)
 
         # Engineering detail in expander
         with st.expander("Engineering Detail", expanded=False):
-            eng_charts = build_engineering_charts(df)
+            eng_charts = build_engineering_charts(df_plot)
             for chart in eng_charts:
                 st.plotly_chart(chart, use_container_width=True)
 
-        # Download button
-        csv_data = df.to_csv(index=False)
-        st.download_button("📥 Download CSV", csv_data, "simulation_results.csv", "text/csv")
+        # Download section
+        st.divider()
+        st.subheader("📥 Export")
+        run_name = st.session_state.get("latest_run_name", "simulation")
+        dl_col1, dl_col2 = st.columns(2)
+        with dl_col1:
+            csv_data = df.to_csv(index=False)
+            st.download_button(
+                "📥 Download CSV Data",
+                csv_data,
+                f"{run_name}_results.csv",
+                "text/csv",
+                use_container_width=True,
+            )
+        with dl_col2:
+            if st.button("📄 Generate PDF Report", type="primary", use_container_width=True, key="pdf_run"):
+                with st.spinner("Generating PDF report..."):
+                    try:
+                        pdf_bytes = generate_pdf_report(
+                            df=df,
+                            scenario=run_name,
+                            summary=summary,
+                            params=params,
+                        )
+                        st.session_state["pdf_report"] = pdf_bytes
+                        st.session_state["pdf_report_name"] = run_name
+                    except Exception as e:
+                        st.error(f"PDF generation failed: {e}")
+
+        if "pdf_report" in st.session_state:
+            st.download_button(
+                "⬇️ Download PDF Report",
+                st.session_state["pdf_report"],
+                f"{st.session_state.get('pdf_report_name', 'report')}_report.pdf",
+                "application/pdf",
+                use_container_width=True,
+            )
 
 
 # =============================================================================
@@ -843,6 +1225,7 @@ def page_past_results():
     for name in selected_names:
         run = run_options[name]
         df = load_csv(run["csv_path"])
+        df_plot = trim_to_completion(df)
 
         st.subheader(f"📊 {run['scenario']}")
 
@@ -852,27 +1235,52 @@ def page_past_results():
         for i, (label, value) in enumerate(summary.items()):
             cols[i % len(cols)].metric(label, value)
 
-        # Charts
+        # Charts (use trimmed data)
         c1, c2 = st.columns(2)
         with c1:
-            st.plotly_chart(build_pressure_chart(df, run["scenario"]),
+            st.plotly_chart(build_pressure_chart(df_plot, run["scenario"]),
                           use_container_width=True, key=f"p_{name}")
         with c2:
-            st.plotly_chart(build_flow_chart(df, run["scenario"]),
+            st.plotly_chart(build_flow_chart(df_plot, run["scenario"]),
                           use_container_width=True, key=f"f_{name}")
 
         c1, c2 = st.columns(2)
         with c1:
-            st.plotly_chart(build_volume_remaining_chart(df, run["scenario"]),
+            st.plotly_chart(build_volume_remaining_chart(df_plot, run["scenario"]),
                           use_container_width=True, key=f"vr_{name}")
         with c2:
-            st.plotly_chart(build_volume_transferred_chart(df, run["scenario"]),
+            st.plotly_chart(build_volume_transferred_chart(df_plot, run["scenario"]),
                           use_container_width=True, key=f"vt_{name}")
 
         with st.expander("Engineering Detail"):
-            eng_charts = build_engineering_charts(df, run["scenario"])
+            eng_charts = build_engineering_charts(df_plot, run["scenario"])
             for j, chart in enumerate(eng_charts):
                 st.plotly_chart(chart, use_container_width=True, key=f"eng_{name}_{j}")
+
+        # PDF export for past results
+        pdf_key = f"pdf_past_{name}"
+        if st.button("📄 Generate PDF Report", key=f"btn_pdf_{name}", use_container_width=False):
+            with st.spinner("Generating PDF report..."):
+                try:
+                    past_summary = compute_summary(df)
+                    pdf_bytes = generate_pdf_report(
+                        df=df_plot,
+                        scenario=run["scenario"],
+                        summary=past_summary,
+                        params=run.get("metadata", {}).get("config", {}),
+                    )
+                    st.session_state[pdf_key] = pdf_bytes
+                except Exception as e:
+                    st.error(f"PDF generation failed: {e}")
+
+        if pdf_key in st.session_state:
+            st.download_button(
+                "⬇️ Download PDF Report",
+                st.session_state[pdf_key],
+                f"{run['scenario']}_report.pdf",
+                "application/pdf",
+                key=f"dl_pdf_{name}",
+            )
 
         # Metadata
         if run["metadata"]:
@@ -893,14 +1301,14 @@ def page_past_results():
             fig = go.Figure()
             for i, name in enumerate(selected_names):
                 run = run_options[name]
-                df = load_csv(run["csv_path"])
+                cmp_df = trim_to_completion(load_csv(run["csv_path"]))
                 if metric == "Flow":
-                    y_col = "Q_total_gpm" if "Q_total_gpm" in df.columns else "Q_L_gpm"
+                    y_col = "Q_total_gpm" if "Q_total_gpm" in cmp_df.columns else "Q_L_gpm"
                 else:
                     y_col = col_name
-                if y_col in df.columns:
+                if y_col in cmp_df.columns:
                     fig.add_trace(go.Scatter(
-                        x=df["time_min"], y=df[y_col],
+                        x=cmp_df["time_min"], y=cmp_df[y_col],
                         mode="lines", name=run["scenario"],
                     ))
             fig.update_layout(title=title, xaxis_title="Time (min)",
@@ -936,11 +1344,11 @@ def page_system_info():
                    │  Q_L
                    ▼
     ┌─────────────────────────────┐
-    │  PIPE SEGMENT 1             │
+    │  PIPE SEGMENT 1             │  (always active)
     └──────────────┬──────────────┘
                    ▼
     ┌─────────────────────────────┐
-    │  PIPE SEGMENT 2             │
+    │  PIPE SEGMENT 2 … 5        │  (optional — L=0 means inactive)
     └──────────────┬──────────────┘
                    ▼  + Δz
     ┌─────────────────────────────┐
@@ -950,8 +1358,9 @@ def page_system_info():
 
     st.subheader("Model Details")
     st.markdown("""
-    - **Solver:** DASSL (DAE system, 30 equations, 30 variables)
+    - **Solver:** DASSL (DAE system)
     - **States:** Gas mass ($m_{gas}$), Liquid volume ($V_{liquid}$)
+    - **Pipe segments:** Up to 5 in series (unused segments have L=0, contributing zero pressure drop)
     - **Friction:** Smooth laminar↔turbulent blend (Swamee-Jain + cubic smoothstep)
     - **Gas model:** Ideal gas, isothermal
     - **Geometry:** Horizontal cylinder with algebraic level solve

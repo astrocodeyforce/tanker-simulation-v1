@@ -213,6 +213,43 @@ services:
     # NO 'privileged: true' — no elevated access.
     # NO 'network_mode: host' — uses dedicated bridge only.
 
+  # -------------------------------------------------------------------------
+  # File Server — Persistent Download Link Server
+  # -------------------------------------------------------------------------
+  # Purpose: Serve generated reports (PDFs, PNGs, CSVs) on a stable URL.
+  #          Files placed in data/downloads/ are immediately available.
+  # Access:  http://<host>:8502/   (directory listing with download links)
+  # -------------------------------------------------------------------------
+  file-server:
+    image: python:3.12-slim
+      # Same Python image — no extra pull needed.
+    container_name: simlab-file-server
+    working_dir: /work
+    volumes:
+      - ./python:/work/python:ro
+        # Server script (file_server.py) — read-only.
+      - ./data:/work/data
+        # Downloads directory — read-write so dashboard can drop files here.
+    networks:
+      - simlab_network
+    ports:
+      - "0.0.0.0:8502:8502"
+        # Public binding — stable download URL.
+    entrypoint: ["python", "/work/python/file_server.py"]
+    environment:
+      - SERVE_DIR=/work/data/downloads
+      - PORT=8502
+      - PYTHONUNBUFFERED=1
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+            # Very lightweight — just serves files.
+          memory: 128m
+            # Minimal memory for a file server.
+    restart: unless-stopped
+      # Always running — stable download links.
+
 # =============================================================================
 # NETWORK DEFINITION
 # =============================================================================

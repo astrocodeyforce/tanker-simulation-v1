@@ -469,16 +469,80 @@ Output: `data/parametric_sweeps/Master_Sweep_Report.xlsx` (~113 KB, 9 sheets).
 scp root@31.220.52.220:/opt/sim-lab/truck-tanker-sim-env/data/parametric_sweeps/Master_Sweep_Report.xlsx ~/Downloads/
 ```
 
-Or use the temporary HTTP server:
-```bash
-# On VPS:
-cd /opt/sim-lab/truck-tanker-sim-env/data/parametric_sweeps
-python3 -m http.server 9091 --bind 0.0.0.0 &
-
-# On Mac browser:
-# http://<VPS-IP>:9091/Master_Sweep_Report.xlsx
-# Kill when done: kill %1
+Or use the **persistent file server** on port 8502:
 ```
+http://<VPS-IP>:8502/
+```
+All files in `data/downloads/` are served here. Drop any PDF/CSV/PNG into that
+directory and it is instantly available at a stable URL (no temporary servers needed).
+
+---
+
+## 12a. File Server — Persistent Download Links
+
+### Overview
+
+Port **8502** runs a persistent file server for special-case reports
+(pump analyses, driver forms, etc.). This is **separate** from the
+dashboard's simulation PDF export feature on port 8501.
+
+### Service Details
+
+| Property | Value |
+|----------|-------|
+| Container | `simlab-file-server` |
+| Port | `0.0.0.0:8502` |
+| Serve directory | `data/downloads/` |
+| Auto-restart | Yes (`unless-stopped`) |
+| Resources | CPU: 0.25, Memory: 128 MB |
+
+### Start / Stop
+
+```bash
+cd /opt/sim-lab/truck-tanker-sim-env
+
+# Start
+docker compose up -d file-server
+
+# Stop
+docker compose stop file-server
+
+# Restart
+docker compose restart file-server
+
+# View logs
+docker logs simlab-file-server
+```
+
+### Access
+
+```
+# Browse all downloads
+http://<VPS-IP>:8502/
+
+# Direct link to a specific file
+http://<VPS-IP>:8502/Pump_Analysis_Report.pdf
+```
+
+### Adding Files
+
+Drop files into `data/downloads/` — they appear instantly:
+
+```bash
+# Copy a file into the downloads directory
+cp /path/to/report.pdf /opt/sim-lab/truck-tanker-sim-env/data/downloads/
+
+# Or generate a report directly there
+python3 python/pump_report.py data/downloads/Pump_Analysis_Report.pdf
+```
+
+### Currently Served Files
+
+| File | Description |
+|------|-------------|
+| `Pump_Analysis_Report.pdf` | Pump suitability analysis (Predator 212cc) |
+| `Driver_Unloading_Data_Form.pdf` | Driver unloading data collection form |
+| `Driver_Unloading_Sheet_V2.pdf` | Driver reference sheet |
 
 ---
 

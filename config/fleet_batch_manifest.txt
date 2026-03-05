@@ -1,0 +1,20 @@
+fleet_ethylene_glycol.yaml|Ethylene Glycol|56|16.1|1.113|6500
+fleet_resin_solution.yaml|Resin Solution|32|500|1.05|6500
+fleet_sodium_silicate.yaml|Sodium Silicate|28|180|1.39|6500
+fleet_biomass.yaml|Biomass|27|50|1.05|6500
+fleet_diethylene_glycol.yaml|Diethylene Glycol|27|30.2|1.118|6500
+fleet_doss_70_pg.yaml|DOSS 70 PG|26|200|1.08|6500
+fleet_nipol_1411_latex.yaml|NIPOL 1411 LATEX|26|200|1.0|6500
+fleet_smartcide_1984a.yaml|Smartcide 1984A|23|5|1.02|6500
+fleet_transformer_oil_type_ii.yaml|Transformer Oil Type II|22|11|0.88|6500
+fleet_used_motor_oil.yaml|Used Motor Oil|22|20|0.88|6500
+fleet_ocd.yaml|OCD|21|0.6|1.05|6500
+fleet_triethylene_glycol.yaml|Triethylene Glycol|19|37.3|1.125|6500
+fleet_propylene_glycol.yaml|Propylene Glycol|17|42|1.036|6500
+fleet_tall_oil_rosin.yaml|Tall Oil Rosin|16|5000|1.07|6500
+fleet_vivatec_500.yaml|VIVATEC 500|16|100|0.99|6500
+fleet_wax_additive_c24_28.yaml|Wax Additive C24-28|16|5|0.8|6500
+fleet_kaolin_clay.yaml|Kaolin Clay|10|300|1.15|6500
+fleet_crude_glycerin.yaml|CRUDE GLYCERIN|5|934|1.261|6500
+fleet_tea_99.yaml|TEA 99|2|590|1.124|6500
+fleet_perchloroethylene.yaml|Perchloroethylene|3|9900|1.622|6500

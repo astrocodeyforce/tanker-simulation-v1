@@ -13,19 +13,19 @@ hover-to-inspect capabilities.
 
 ### Localhost-Only Port Binding
 
-The dashboard Docker service binds its port **exclusively to localhost**:
+The dashboard Docker service binds its port:
 
 ```yaml
 ports:
-  - "127.0.0.1:8501:8501"
+  - "0.0.0.0:8501:8501"
 ```
 
 | Aspect | Detail |
 |--------|--------|
-| **Host binding** | `127.0.0.1` (loopback interface only) |
+| **Host binding** | `0.0.0.0` (all interfaces) |
 | **Container port** | `8501` (Streamlit default) |
-| **Public exposure** | **NONE** — not reachable from the internet |
-| **Access method** | SSH tunnel required |
+| **Public exposure** | Yes — accessible via VPS IP |
+| **Access method** | Direct browser or SSH tunnel |
 
 ### Why NOT `8501:8501`?
 
@@ -175,11 +175,47 @@ The dashboard supports full simulation configuration with tabbed input:
 | 💧 Liquid | Density, viscosity (with reference table) |
 | 💨 Air Supply | Compressor SCFM |
 | 🔧 Valve | Size, K-factor, opening fraction |
-| 🔩 Piping | 2 segments: diameter, length, roughness, fittings K |
+| 🔩 Piping | Up to 5 segments: diameter, length, roughness, fittings K |
 | 📐 Discharge | Elevation change, receiver pressure |
 | ⚙️ Simulation | Max run time, output interval, stop threshold |
 
 Includes three built-in presets (Baseline, Solvent, Coating) plus Custom mode.
+
+### PDF Report Download
+
+The dashboard generates on-demand PDF reports from simulation results:
+
+1. Run a simulation (or select a past result)
+2. Click **📄 Download PDF Report** in the Export section
+3. A multi-page PDF is generated with all active charts
+
+**Technical pipeline:** Plotly → kaleido 0.2.1 → PNG → matplotlib PdfPages → PDF
+
+> **Note:** This is the **simulation PDF** feature. For special-case reports
+> (pump analyses, driver forms), use the **file server** on port 8502.
+
+### Dynamic N-Pipe Support
+
+Charts auto-detect the number of active pipe segments (1–5) based on
+pressure drop data (`dP > 0.01`). Pressure drop and Reynolds number charts
+automatically scale to show only the segments that are configured.
+
+| Segment | Color |
+|---------|-------|
+| Seg 1 | Green |
+| Seg 2 | Orange-Red |
+| Seg 3 | Orange |
+| Seg 4 | Purple |
+| Seg 5 | Brown |
+
+### Auto-Trim Charts
+
+Time-series charts automatically trim to the meaningful window:
+- Transfer phase (while liquid is flowing)
+- Pressure climb to 95% of maximum
+- Plus 1 minute margin
+
+This eliminates hundreds of minutes of flat lines after transfer completes.
 
 ---
 
@@ -189,7 +225,7 @@ Includes three built-in presets (Baseline, Solvent, Coating) plus Custom mode.
 |----------|-------|
 | Container name | `simlab-dashboard` |
 | Network | `simlab_network` (project-internal) |
-| Port binding | `127.0.0.1:8501` (localhost only) |
+| Port binding | `0.0.0.0:8501` |
 | Python source | **Read-only** (`:ro` mount at `/work/python`) |
 | Data directory | **Read-write** (at `/work/data` — for logo, configs, results) |
 | Resource limits | CPU: 1.0, Memory: 1 GB |
