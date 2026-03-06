@@ -19,59 +19,16 @@
 services:
 
   # ===========================================================================
-  # LEGACY SERVICES (Environment Validation — HelloWorld)
+  # SIMULATION SERVICE (TankerTransferV2)
   # ===========================================================================
 
   # -------------------------------------------------------------------------
-  # OpenModelica — HelloWorld Validation Runner
+  # OpenModelica Runner — TankerTransferV2 Scenario Execution
   # -------------------------------------------------------------------------
-  openmodelica:
-    image: openmodelica/openmodelica:v1.23.1-ompython
-    container_name: simlab-openmodelica
-    working_dir: /work
-    volumes:
-      - ./models:/work/models:ro
-      - ./outputs:/work/outputs
-      - ./scripts:/work/scripts:ro
-    networks:
-      - simlab_network
-    entrypoint: ["/bin/bash", "/work/scripts/run_simulation.sh"]
-    deploy:
-      resources:
-        limits:
-          cpus: "1.0"
-          memory: 1g
-
-  # -------------------------------------------------------------------------
-  # Python — HelloWorld Visualization
-  # -------------------------------------------------------------------------
-  python-viz:
-    image: python:3.12-slim
-    container_name: simlab-python-viz
-    working_dir: /work
-    volumes:
-      - ./outputs:/work/outputs
-      - ./scripts:/work/scripts:ro
-    networks:
-      - simlab_network
-    entrypoint: ["/bin/bash", "-c", "pip install --quiet matplotlib pandas && python /work/scripts/plot_results.py"]
-    deploy:
-      resources:
-        limits:
-          cpus: "1.0"
-          memory: 1g
-
-  # ===========================================================================
-  # APPLICATION SERVICES (TankerTransfer Simulation)
-  # ===========================================================================
-
-  # -------------------------------------------------------------------------
-  # OpenModelica Runner — TankerTransfer Scenario Execution
-  # -------------------------------------------------------------------------
-  # Purpose: Compile TankerTransfer.mo, run simulation with config overrides,
+  # Purpose: Compile TankerTransferV2.mo, run simulation with config overrides,
   #          export CSV results to data/runs/<timestamp>_<scenario>/
-  # Usage:   docker compose run --rm openmodelica-runner \
-  #            bash /work/scripts/run_scenario.sh /work/config/<scenario>.yaml
+  # Usage:   docker compose run --rm --entrypoint "" openmodelica-runner \
+  #            bash /work/scripts/run_scenario_v2.sh /work/config/<scenario>.yaml
   # -------------------------------------------------------------------------
   openmodelica-runner:
     image: openmodelica/openmodelica:v1.23.1-ompython
@@ -81,11 +38,11 @@ services:
     working_dir: /work
     volumes:
       - ./modelica:/work/modelica:ro
-        # Modelica source models (TankerTransfer.mo) — read-only.
+        # Modelica source models (TankerTransferV2.mo) — read-only.
       - ./config:/work/config:ro
         # Scenario YAML configs — read-only.
       - ./scripts:/work/scripts:ro
-        # Runner scripts (run_scenario.sh, export_results.py) — read-only.
+        # Runner scripts (run_scenario_v2.sh, export_results_v2.py) — read-only.
       - ./data:/work/data
         # Run output directories — read-write.
         # Each run creates data/runs/<timestamp>_<scenario>/ with outputs.
@@ -93,8 +50,8 @@ services:
       - simlab_network
     entrypoint: ["/bin/bash"]
       # No default command — caller specifies the script and config.
-      # Example: docker compose run --rm openmodelica-runner \
-      #            bash /work/scripts/run_scenario.sh /work/config/scenario_A.yaml
+      # Example: docker compose run --rm --entrypoint "" openmodelica-runner \
+      #            bash /work/scripts/run_scenario_v2.sh /work/config/v2_baseline.yaml
     deploy:
       resources:
         limits:
@@ -105,42 +62,6 @@ services:
     # NO 'ports:' — zero published ports.
     # NO 'privileged: true' — no elevated access.
     # NO 'network_mode: host' — uses dedicated bridge only.
-
-  # -------------------------------------------------------------------------
-  # Python Plotter — TankerTransfer Visualization & Reports
-  # -------------------------------------------------------------------------
-  # Purpose: Read simulation CSV, generate 4-panel PNG plots and reports.
-  # Usage:   docker compose run --rm python-plotter \
-  #            python /work/python/plot_results.py /work/data/runs/<dir>/outputs.csv
-  # -------------------------------------------------------------------------
-  python-plotter:
-    image: python:3.12-slim
-      # Official Python 3.12 slim — minimal size, includes pip.
-    container_name: simlab-py-plotter
-      # Distinct name from legacy 'simlab-python-viz' service.
-    working_dir: /work
-    volumes:
-      - ./python:/work/python:ro
-        # Python plotting and report scripts — read-only.
-      - ./data:/work/data
-        # Run output directories — reads CSV, writes PNG plots.
-      - ./scripts:/work/scripts:ro
-        # Shared scripts (if needed) — read-only.
-    networks:
-      - simlab_network
-    entrypoint: ["/bin/bash", "-c"]
-      # Expects a command string. Example:
-      #   docker compose run --rm python-plotter \
-      #     "pip install --quiet matplotlib && python /work/python/plot_results.py ..."
-    deploy:
-      resources:
-        limits:
-          cpus: "1.0"
-            # Limit to 1 CPU core.
-          memory: 1g
-            # Limit to 1 GB RAM — sufficient for plotting.
-    # NO 'ports:' — zero published ports.
-    # NO 'privileged: true' — no elevated access.
 
   # ===========================================================================
   # VISUALIZATION SERVICES (Interactive Dashboard)
@@ -212,6 +133,43 @@ services:
       #   docker compose stop visual-dashboard
     # NO 'privileged: true' — no elevated access.
     # NO 'network_mode: host' — uses dedicated bridge only.
+
+  # -------------------------------------------------------------------------
+  # File Server — Persistent Download Link Server
+  # -------------------------------------------------------------------------
+  # Purpose: Serve generated reports (PDFs, PNGs, CSVs) on a stable URL.
+  #          Files placed in data/downloads/ are immediately available.
+  # Access:  http://<host>:8502/   (directory listing with download links)
+  # -------------------------------------------------------------------------
+  file-server:
+    image: python:3.12-slim
+      # Same Python image — no extra pull needed.
+    container_name: simlab-file-server
+    working_dir: /work
+    volumes:
+      - ./python:/work/python:ro
+        # Server script (file_server.py) — read-only.
+      - ./data:/work/data
+        # Downloads directory — read-write so dashboard can drop files here.
+    networks:
+      - simlab_network
+    ports:
+      - "0.0.0.0:8502:8502"
+        # Public binding — stable download URL.
+    entrypoint: ["python", "/work/python/file_server.py"]
+    environment:
+      - SERVE_DIR=/work/data/downloads
+      - PORT=8502
+      - PYTHONUNBUFFERED=1
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+            # Very lightweight — just serves files.
+          memory: 128m
+            # Minimal memory for a file server.
+    restart: unless-stopped
+      # Always running — stable download links.
 
 # =============================================================================
 # NETWORK DEFINITION
