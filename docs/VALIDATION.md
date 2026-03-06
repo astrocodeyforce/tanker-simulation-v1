@@ -141,3 +141,63 @@ After running all 3 scenarios:
 | No manufacturer pump curve | Scenario B/C results approximate | Medium |
 | No two-phase at tank bottom | Can't simulate last ~5% of liquid | Low |
 | Smooth controller | Small overshoot possible (~0.5 psig) | Low |
+
+---
+
+## 6. V2.1 Validation — Tier 1 + Tier 2 (2026-03-06)
+
+### 6a. Backward Compatibility
+
+Verified that v2.1 changes produce identical results when new features are inactive:
+- **Non-Newtonian (n=1.0):** 0.000% difference from pre-change baseline
+- **Two-phase (D_outlet=3"):** No effect until last ~90 gal of 6,500 gal load
+
+### 6b. Baseline Comparison (5 Products — Before vs After)
+
+Run with identical inputs on v2.0 (before) and v2.1 (after all Tier 1+2 changes):
+
+| Product | μ (cP) | Before (min) | After (min) | Δ Time | Status |
+|---------|--------|-------------|------------|--------|--------|
+| OCD | 0.6 | 47.0 | 47.6 | +1.2% | PASS |
+| Ethylene Glycol | 16.1 | 48.0 | 48.6 | +1.3% | PASS |
+| Resin Solution | 500 | 57.2 | 58.5 | +2.4% | PASS |
+| Tall Oil Rosin | 5000 | 110.1 | 114.5 | +4.0% | FAIL (>60 min) |
+| Perchloroethylene | 9900 | 163.2 | 179.1 | +9.7% | FAIL (>60 min) |
+
+**Observation:** Higher-viscosity products show larger corrections — expected because the 3-segment K-fittings layout adds more realistic friction losses. No PASS/FAIL status changes.
+
+### 6c. Uncertainty Study (RSS per White Eq. E.1)
+
+45 simulations, 7 parameters, central finite-difference:
+
+| Product | Base Time | RSS ± | % | Dominant Factor |
+|---------|-----------|-------|---|----------------|
+| OCD (0.6 cP) | 47.6 min | ±2.62 min | 5.5% | SCFM (63%) |
+| Resin Solution (500 cP) | 58.5 min | ±3.26 min | 5.6% | SCFM (48%), μ (23%) |
+| Tall Oil Rosin (5000 cP) | 114.5 min | ±8.43 min | 7.4% | μ (62%), D (18%) |
+
+**Interpretation:** Low-viscosity products are compressor-limited (SCFM dominates). High-viscosity products are friction-limited (viscosity and diameter dominate).
+
+### 6d. Non-Newtonian Verification
+
+| Test | n | Expected | Result |
+|------|---|----------|--------|
+| Newtonian baseline | 1.0 | μ_eff = μ_L always | ✅ 0.000% difference |
+| NIPOL latex (shear-thin) | 0.4 | Faster than Newtonian | ✅ 48.0 vs 51.7 min (7% faster) |
+
+### 6e. Two-Phase Verification
+
+| Time (min) | h_liquid (in) | f_two_phase | Description |
+|-----------|--------------|-------------|-------------|
+| 0 | 64.6 | 1.000 | Full tank, pure liquid |
+| 46.0 | 3.5 | 1.000 | Near end, still pure |
+| 47.0 | 2.91 | 0.997 | Two-phase onset |
+| 47.5 | 1.5 | 0.500 | Half air entrainment |
+| 48.0 | 0.14 | 0.007 | Effectively empty |
+
+### 6f. Textbook Verification
+
+All model equations verified against Frank White, *Fluid Mechanics*:
+- Appendix E: Uncertainty propagation Eq. E.1 / E.2
+- Chapter 6: Darcy-Weisbach, Swamee-Jain, K-fittings
+- Equation sheet photos verified by user

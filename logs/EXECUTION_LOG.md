@@ -55,3 +55,46 @@ None / <describe>
 - data/runs/20260220_195422_scenario_C_pump_only/
 
 ### Completed: 2026-02-20 19:54:51 UTC
+
+---
+
+## Tier 1+2 Implementation — 2026-03-06
+
+**Overall: SUCCESS**
+
+### Tier 1A — K-Fittings (3-Segment Piping)
+- Changed piping from 1 segment (L=20ft, K=2.5) to 3 segments (1+20+1 ft, K=0.5+0.5+2.1)
+- ✅ All 5 baseline products re-ran successfully
+
+### Tier 1B — Uncertainty Study (RSS per White Eq. E.1)
+- 45 simulations (3 products × 7 params × 2 directions + 3 base cases)
+- ✅ All 45 simulations completed — zero failures
+- Results: `data/uncertainty_results_20260306_171656.json`
+
+### Tier 2A — Non-Newtonian Rheology
+- Added power-law model (n_power_law parameter, mu_eff per segment)
+- ✅ Backward compatibility: n=1.0 → 0.000% difference
+- ✅ Non-Newtonian test (NIPOL latex n=0.4): 7% faster (shear-thinning)
+
+### Tier 2B — Two-Phase End-of-Unload
+- Added f_two_phase cubic smoothstep (h_liquid < D_outlet)
+- ✅ Verified onset at t=47.0 min, completion near h=0.14"
+- Only affects last ~90 gal of 6,500 gal load
+
+### Final Comparison (5 Products)
+| Product | Before | After | Δ |
+|---------|--------|-------|---|
+| OCD (0.6 cP) | 47.0 min | 47.6 min | +1.2% |
+| Ethylene Glycol (16.1 cP) | 48.0 min | 48.6 min | +1.3% |
+| Resin Solution (500 cP) | 57.2 min | 58.5 min | +2.4% |
+| Tall Oil Rosin (5000 cP) | 110.1 min | 114.5 min | +4.0% |
+| Perchloroethylene (9900 cP) | 163.2 min | 179.1 min | +9.7% |
+
+### Git Commits
+- `e777681` — v2.1 physics (Tier 1+2)
+- `6dd8754` — Dashboard updates
+
+### Dashboard Restart
+- Container restarted, HTTP 200 verified on http://31.220.52.220:8501/
+
+### Completed: 2026-03-06 ~18:30 UTC

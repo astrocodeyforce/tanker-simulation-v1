@@ -41,3 +41,16 @@
 | 2 | Creating a new bridge network won't affect existing networks | Docker isolates networks by name |
 | 3 | Bind mounts under /opt/sim-lab/ won't collide with anything | Directory did not exist before this project |
 | 4 | Resource usage of sim containers won't starve production | Models are small; containers are short-lived (run, not up) |
+
+## Physics Model Assumptions (v2.1)
+
+| # | Assumption | Impact | Status |
+|---|-----------|--------|--------|
+| 1 | All products are Newtonian unless n_power_law is explicitly set | n defaults to 1.0; no behavior change for existing configs | ✅ Verified (0.000% diff) |
+| 2 | Power-law applies to all pipe segments independently | μ_eff varies per segment based on local velocity | ✅ Implemented |
+| 3 | Shear rate floored at 0.01 s⁻¹ | Prevents μ_eff → ∞ at zero flow (n < 1) | ✅ Numerical safeguard |
+| 4 | Two-phase onset at h_liquid < D_outlet | Cubic smoothstep gives smooth transition | ✅ Verified |
+| 5 | Two-phase only affects last ~1.4% of load | 90 gal of 6,500 gal; minimal impact on total time | ✅ Verified |
+| 6 | Standard hose length is 20 ft | Per Bull & Bear fleet standard | ✅ Confirmed by user |
+| 7 | Standard piping is 3 segments | Nozzle (1ft) + hose (20ft) + customer connection (1ft) | ✅ Confirmed by user |
+| 8 | Uncertainty perturbations are independent | RSS combination per White Eq. E.1 is valid | ✅ Textbook-verified |

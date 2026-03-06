@@ -3,6 +3,110 @@
 All notable changes to this project will be documented in this file.
 
 ---
+## [2.1.0] — 2026-03-06
+
+### Phase: Physics Model Tier 1 + Tier 2 Improvements
+
+#### Summary
+
+Implemented 4 physics upgrades (2 Tier 1 + 2 Tier 2) to the TankerTransferV2 model,
+validated against textbook (Frank White, *Fluid Mechanics* — Appendix E, Eq. E.1/E.2),
+with full baseline comparison and uncertainty quantification.
+
+#### Tier 1A — K-Fittings Realism (3-Segment Piping Layout)
+
+Changed from 1 pipe segment (L=20ft, K=2.5) to a realistic 3-segment layout:
+
+| Segment | Length | K_minor | Description |
+|---------|--------|---------|-------------|
+| Seg 1 — Nozzle | 1 ft | 0.50 | Tank outlet nozzle (entrance loss) |
+| Seg 2 — Hose | 20 ft | 0.50 | Standard 20-ft discharge hose (cam-lock couplings) |
+| Seg 3 — Customer | 1 ft | 2.10 | Customer piping (90° elbow + tee + exit loss) |
+| **Total** | **22 ft** | **3.10** | Plus valve K=0.20 |
+
+Impact: Low-viscosity +1%, high-viscosity up to +9.7% longer (more realistic).
+
+#### Tier 1B — Uncertainty Study (RSS per White Eq. E.1)
+
+- **45 simulations** (3 products × 7 parameters × 2 directions + 3 base cases)
+- Central finite-difference sensitivity analysis
+- 7 uncertainty parameters: μ (±15%), D (±2%), SCFM (±5%), V (±3%), ρ (±2%), K (±20%), Δz (±0.5ft)
+
+| Product | Base Time | RSS Uncertainty | Dominant Parameter |
+|---------|-----------|----------------|-------------------|
+| OCD (0.6 cP) | 47.6 min | ±2.62 min (5.5%) | SCFM (63%) |
+| Resin Solution (500 cP) | 58.5 min | ±3.26 min (5.6%) | SCFM (48%), then μ (23%) |
+| Tall Oil Rosin (5000 cP) | 114.5 min | ±8.43 min (7.4%) | μ (62%), then D (18%) |
+
+Results saved to `data/uncertainty_results_20260306_171656.json`.
+
+New script: `scripts/uncertainty_study.py`
+
+#### Tier 2A — Non-Newtonian Rheology (Power-Law Model)
+
+Added power-law viscosity model to all pipe segments:
+
+$$\mu_{eff} = \mu_L \cdot \left(\frac{8v}{D}\right)^{n-1}$$
+
+- New parameter: `n_power_law` (default 1.0 = Newtonian)
+- 6 new algebraic variables: `mu_eff_valve`, `mu_eff_pipe1`–`mu_eff_pipe5`
+- Shear rate floored at 0.01 s⁻¹ to prevent singularity
+- **Backward compatibility verified**: n=1.0 produces 0.000% difference from pre-change results
+- Non-Newtonian test: NIPOL latex (n=0.4) → 48.0 min vs 51.7 min Newtonian (7% faster, shear-thinning)
+
+Files changed: `TankerTransferV2.mo`, `yaml_to_override_v2.py`, `fleet_batch_sim.py`, `export_results_v2.py`
+
+#### Tier 2B — Two-Phase End-of-Unload
+
+Models air entrainment when liquid level drops below the outlet nozzle:
+
+$$f_{2\phi} = 3s^2 - 2s^3, \quad s = \frac{h_{liquid}}{D_{outlet}}$$
+
+- New parameter: `D_outlet` (default 3 in = same as valve)
+- `f_two_phase` multiplies the driving pressure: `dP_drive × f_two_phase = dP_loss_total`
+- Only affects last ~90 gal of 6,500 gal load (1.4%)
+- Verified: onset at t=47.0 min (h=2.91″, f=0.997), at cutoff h=0.14″ (f=0.007)
+
+#### Final Comparison (5 Products — Before vs After Tier 1+2)
+
+| Product | Baseline | Final | Δ Time | Δ Flow |
+|---------|----------|-------|--------|--------|
+| OCD (0.6 cP) | 47.0 min | 47.6 min | +1.2% | −2.1% |
+| Ethylene Glycol (16.1 cP) | 48.0 min | 48.6 min | +1.3% | −2.3% |
+| Resin Solution (500 cP) | 57.2 min | 58.5 min | +2.4% | −6.2% |
+| Tall Oil Rosin (5000 cP) | 110.1 min | 114.5 min | +4.0% | −6.8% |
+| Perchloroethylene (9900 cP) | 163.2 min | 179.1 min | +9.7% | −11.2% |
+
+No PASS/FAIL status changes. Higher-viscosity products show larger corrections (expected — more friction-sensitive).
+
+#### Dashboard Updates
+
+- **New inputs**: Power-Law Index (n) on Liquid tab, Outlet Nozzle Diameter on Discharge tab
+- **New engineering charts**: Effective Viscosity (μ_eff vs time), Two-Phase Factor (f_two_phase)
+- **Presets updated**: All 3 presets now use 3-segment piping layout with correct K values
+- **YAML generator**: Writes `n_power_law` and `outlet_diameter_in` to config files
+- **System Info**: Updated model description with non-Newtonian, two-phase, compressor curve
+- **Reference table**: Power-law index (n) values for common liquid types
+
+#### New/Modified Files
+
+| File | Change |
+|------|--------|
+| `modelica/TankerTransferV2.mo` | ~470 lines — added n_power_law, D_outlet, mu_eff_*, f_two_phase |
+| `scripts/yaml_to_override_v2.py` | Added n_power_law, D_outlet mappings |
+| `scripts/fleet_batch_sim.py` | Updated to 3-segment piping layout |
+| `scripts/export_results_v2.py` | 46 columns (added mu_eff_*, f_two_phase) |
+| `scripts/uncertainty_study.py` | **New** — RSS uncertainty propagation |
+| `scripts/compare_baseline_final.py` | **New** — before/after comparison report |
+| `python/dashboard.py` | New inputs, charts, presets, YAML gen, system info |
+
+#### Git
+
+- Commit `e777681` — v2.1 physics (Tier 1+2: K-fittings, uncertainty, non-Newtonian, two-phase)
+- Commit `6dd8754` — Dashboard updates (plots, inputs, presets)
+- Pushed to `main` at `https://github.com/astrocodeyforce/tanker-simulation-v1.git`
+
+---
 ## [2.0.0] — 2026-02-21/22
 
 ### Phase: Comprehensive Parametric Study & Production Dashboard

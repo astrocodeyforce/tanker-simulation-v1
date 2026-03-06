@@ -175,11 +175,43 @@ The dashboard supports full simulation configuration with tabbed input:
 | 💧 Liquid | Density, viscosity (with reference table) |
 | 💨 Air Supply | Compressor SCFM |
 | 🔧 Valve | Size, K-factor, opening fraction |
-| 🔩 Piping | 2 segments: diameter, length, roughness, fittings K |
-| 📐 Discharge | Elevation change, receiver pressure |
+| 🔩 Piping | Up to 5 segments: diameter, length, roughness, fittings K |
+| 📐 Discharge | Elevation change, receiver pressure, outlet nozzle diameter |
 | ⚙️ Simulation | Max run time, output interval, stop threshold |
 
 Includes three built-in presets (Baseline, Solvent, Coating) plus Custom mode.
+All presets use the standard 3-segment piping layout (1ft nozzle + 20ft hose + 1ft customer).
+
+### Non-Newtonian (Power-Law) Input
+
+The **Liquid** tab includes a Power-Law Index (n) input:
+
+| Value | Meaning |
+|-------|--------|
+| n = 1.0 | Newtonian (default — most products) |
+| n < 1.0 | Shear-thinning (latex, polymers, ketchup) |
+| n > 1.0 | Shear-thickening (rare — corn starch) |
+
+A reference table shows n values for common product types. Leave at 1.0 if unknown.
+
+### Outlet Nozzle Diameter
+
+The **Discharge** tab includes an outlet diameter input for the two-phase model.
+When the liquid level drops below this diameter, air entrainment reduces flow.
+Typically matches the valve size (default 3").
+
+### Engineering Detail Charts (v2.1)
+
+Expand **Engineering Detail** on any simulation result to see:
+
+| Chart | Shows | When Visible |
+|-------|-------|-------------|
+| Pressure Drops by Component | ΔP for valve + each pipe segment | Always |
+| Reynolds Number | Re per segment with laminar/transition/turbulent lines | Always |
+| Liquid Level in Tank | h_liquid (inches) over time | Always |
+| Air Mass Flow | Compressor in + relief out (g/s) | Always |
+| **Effective Viscosity** | μ_eff (cP) per segment over time | When n ≠ 1.0 or always for pipe1 |
+| **Two-Phase Factor** | f_two_phase (0–1) at end of unload | When two-phase activates (last ~1 min) |
 
 ---
 

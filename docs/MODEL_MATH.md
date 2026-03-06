@@ -7,12 +7,20 @@ The model is **1D lumped-parameter** — no spatial gradients, single pressure/t
 
 **V2 improvements over V1:**
 - Horizontal cylindrical tank geometry with algebraic liquid-level solve
-- Multi-segment pipe network (valve + 2 pipe segments in series)
+- Multi-segment pipe network (valve + up to 5 pipe segments in series)
 - Smooth friction factor blend (cubic smoothstep, laminar ↔ turbulent)
 - Valve K-model with opening fraction
 - Pressure relief valve (subsonic orifice)
 - Compressor soft ramp-down near pressure cap
 - All parameters configurable via YAML → override
+
+**V2.1 additions (Tier 1+2):**
+- 3-segment standard piping layout (nozzle + hose + customer connection)
+- K-fittings per segment (entrance loss, cam-locks, elbows, tee, exit)
+- Per-segment non-Newtonian effective viscosity (power-law model)
+- Two-phase end-of-unload factor (cubic smoothstep when h < D_outlet)
+- Compressor backpressure curve (volumetric efficiency with clearance ratio)
+- Uncertainty quantification framework (RSS per White Eq. E.1)
 
 ---
 
@@ -184,11 +192,21 @@ $$v_{valve} = \frac{Q_L}{A_{valve}}, \quad A_{valve} = \frac{\pi D_{valve}^2}{4}
 
 ## 8. Multi-Segment Pipe Network
 
-The discharge consists of **two pipe segments in series** — same volumetric flow $Q_L$ passes through both.
+The discharge consists of **up to 5 pipe segments in series** — same volumetric flow $Q_L$ passes through all.
+Segments with $L = 0$ are inactive and contribute zero pressure drop.
+
+### Standard 3-Segment Layout (v2.1)
+
+| Segment | Length | K_minor | Physical Description |
+|---------|--------|---------|---------------------|
+| Seg 1 | 1 ft | 0.50 | Tank outlet nozzle (entrance loss) |
+| Seg 2 | 20 ft | 0.50 | Standard discharge hose (cam-lock couplings) |
+| Seg 3 | 1 ft | 2.10 | Customer connection (90° elbow + tee + exit loss) |
+| Seg 4–5 | 0 ft | 0.0 | Available for complex piping runs |
 
 ### Per-Segment Pressure Drop
 
-For segment $i$ ($i = 1, 2$):
+For segment $i$ ($i = 1 \ldots 5$), if $L_i > 0$:
 
 **Velocity:**
 
@@ -196,7 +214,9 @@ $$v_i = \frac{Q_L}{A_i}, \quad A_i = \frac{\pi D_i^2}{4}$$
 
 **Reynolds number:**
 
-$$Re_i = \frac{\rho_L \cdot |v_i| \cdot D_i}{\mu_L}$$
+$$Re_i = \frac{\rho_L \cdot |v_i| \cdot D_i}{\mu_{eff,i}}$$
+
+where $\mu_{eff,i}$ is the effective (power-law) viscosity for segment $i$ (see Section 8b).
 
 **Major loss (Darcy-Weisbach friction):**
 
@@ -212,7 +232,81 @@ $$\Delta P_{seg,i} = \Delta P_{friction,i} + \Delta P_{minor,i}$$
 
 ### Total Pipeline Loss
 
-$$\Delta P_{loss,total} = \Delta P_{valve} + \Delta P_{seg,1} + \Delta P_{seg,2}$$
+$$\Delta P_{loss,total} = \Delta P_{valve} + \sum_{i=1}^{5} \Delta P_{seg,i}$$
+
+(Inactive segments with $L_i = 0$ contribute $\Delta P_{seg,i} = 0$.)
+
+---
+
+## 8b. Non-Newtonian Effective Viscosity (Power-Law Model)
+
+*Added in v2.1 (Tier 2A)*
+
+Many industrial products (latex, polymers, resins) are shear-thinning: their viscosity decreases with increasing shear rate. The model uses the power-law (Ostwald–de Waele) model.
+
+### Power-Law Equation
+
+For each pipe segment $i$ and the valve:
+
+$$\mu_{eff,i} = \mu_L \cdot \left(\frac{8 v_i}{D_i}\right)^{n-1}$$
+
+where:
+- $\mu_L$ = nominal viscosity from config (Pa·s)
+- $v_i$ = flow velocity in segment $i$ (m/s)
+- $D_i$ = diameter of segment $i$ (m)
+- $n$ = power-law flow behavior index
+
+### Shear Rate Floor
+
+The term $8v/D$ is the characteristic shear rate for pipe flow. To prevent $\mu_{eff} \to \infty$ when $v \to 0$ and $n < 1$:
+
+$$\dot{\gamma}_i = \max\left(\frac{8|v_i|}{D_i},\; 0.01\right)$$
+
+### Behavior by n Value
+
+| n | Behavior | Example Products |
+|---|---------|------------------|
+| 1.0 | Newtonian (default) | Water, solvents, glycols, oils |
+| 0.3–0.5 | Strongly shear-thinning | Latex paint, ketchup |
+| 0.4–0.8 | Moderately shear-thinning | Polymer solutions, resins |
+| 1.1–1.5 | Shear-thickening | Corn starch suspensions |
+
+When $n = 1.0$: $\mu_{eff} = \mu_L \cdot 1 = \mu_L$ exactly (Newtonian, zero change).
+
+### Note on Determining n
+
+The power-law index $n$ cannot be calculated from a single viscosity measurement. It requires rheometer data at two or more shear rates. If $n$ is unknown, leave it at 1.0 (Newtonian default).
+
+---
+
+## 8c. Two-Phase End-of-Unload Factor
+
+*Added in v2.1 (Tier 2B)*
+
+When the tank is nearly empty, the liquid level drops below the outlet nozzle opening. Air is entrained into the discharge stream, creating a two-phase (air + liquid) mixture that reduces effective flow.
+
+### Smoothstep Model
+
+$$s = \frac{h_{liquid}}{D_{outlet}}$$
+
+$$f_{2\phi} = \begin{cases} 1 & \text{if } s \geq 1 \\ 3s^2 - 2s^3 & \text{if } 0 < s < 1 \\ 0 & \text{if } s \leq 0 \end{cases}$$
+
+The modified flow equation becomes:
+
+$$\boxed{\Delta P_{drive} \cdot f_{2\phi} = \Delta P_{loss,total}}$$
+
+### Parameters
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| $D_{outlet}$ | 0.0762 m (3 in) | Outlet nozzle diameter |
+
+### Impact
+
+- For a 6,500 gal load, two-phase activates in the **last ~90 gallons** (1.4%)
+- At $h = D_{outlet}$: $f_{2\phi} = 1.0$ (pure liquid)
+- At $h = D_{outlet}/2$: $f_{2\phi} = 0.5$ (half effectiveness)
+- At $h \approx 0$: $f_{2\phi} \approx 0$ (effectively stopped)
 
 ---
 
@@ -246,9 +340,9 @@ This ensures $C^1$ continuity at both $Re = 2000$ and $Re = 4000$.
 
 ## 10. Flow Equation (Algebraic)
 
-The system solves for $Q_L$ such that driving pressure equals total loss:
+The system solves for $Q_L$ such that driving pressure (scaled by two-phase factor) equals total loss:
 
-$$\boxed{\Delta P_{drive} = \Delta P_{loss,total}} \quad \text{when } Q_L > 0$$
+$$\boxed{\Delta P_{drive} \cdot f_{2\phi} = \Delta P_{loss,total}} \quad \text{when } Q_L > 0$$
 
 If $\Delta P_{drive} \leq 0$ or $V_{liquid} \leq V_{liquid,min}$:
 
@@ -354,11 +448,11 @@ The model is a DAE index-1 system. The solver handles:
 | 3 | Incompressible liquid | Excellent for liquids | — |
 | 4 | 1D lumped flow | No spatial gradients | CFD if needed |
 | 5 | Quasi-steady friction | Good for slow transients | Unsteady friction |
-| 6 | Newtonian viscosity | Constant μ | Power-law non-Newtonian (k, n) |
-| 7 | No two-phase flow | Valid until tank nearly empty | Two-phase model |
+| 6 | ~~Newtonian viscosity~~ | **Resolved in v2.1** | ✅ Power-law non-Newtonian (n_power_law) |
+| 7 | ~~No two-phase flow~~ | **Resolved in v2.1** | ✅ Two-phase cubic smoothstep (f_two_phase) |
 | 8 | Constant receiver pressure | No storage dynamics | Dynamic receiver model |
 | 9 | Horizontal cylinder (no baffles) | Clean level-volume mapping | Baffled tank correction |
-| 10 | Two pipe segments | Adequate for most field setups | N-segment generalization |
+| 10 | ~~Two pipe segments~~ | **Resolved in v2.1** | ✅ Up to 5 segments (standard: 3) |
 
 ---
 
@@ -375,10 +469,41 @@ The model is a DAE index-1 system. The solver handles:
 | mdot_air_max | 0.01098 | kg/s | 19 SCFM |
 | rho_L | 1050 | kg/m³ | Latex emulsion |
 | mu_L | 0.1 | Pa·s | 100 cP |
+| n_power_law | 1.0 | — | Newtonian (power-law index) |
+| D_outlet | 0.0762 | m | 3 in (two-phase onset diameter) |
 | D_pipe | 0.0762 | m | 3 in discharge |
-| L_pipe (each) | 7.62 | m | 25 ft per segment |
+| L_pipe1 | 0.3048 | m | 1 ft (nozzle) |
+| L_pipe2 | 6.096 | m | 20 ft (hose) |
+| L_pipe3 | 0.3048 | m | 1 ft (customer) |
+| K_pipe1 | 0.50 | — | Entrance loss |
+| K_pipe2 | 0.50 | — | Cam-lock couplings |
+| K_pipe3 | 2.10 | — | Elbow + tee + exit |
 | ε_pipe | 1e-5 | m | Smooth stainless |
 | K_valve_open | 0.2 | — | Full-bore ball valve |
 | D_relief | 0.0254 | m | 1 in relief orifice |
 | Cd_relief | 0.62 | — | Sharp-edge orifice |
 | T_gas_0 | 293.15 | K | 20 °C |
+
+---
+
+## 18. Uncertainty Quantification (v2.1)
+
+Uncertainty in transfer time is propagated using the Root-Sum-Square (RSS) method from Frank White, *Fluid Mechanics*, Appendix E, Eq. E.1:
+
+$$\delta R = \sqrt{\sum_{i=1}^{N} \left(\frac{\partial R}{\partial x_i} \cdot \delta x_i \right)^2}$$
+
+where partial derivatives are estimated by central finite differences:
+
+$$\frac{\partial R}{\partial x_i} \approx \frac{R(x_i + \delta x_i) - R(x_i - \delta x_i)}{2 \delta x_i}$$
+
+### Uncertainty Parameters
+
+| Parameter | Perturbation | Physical Basis |
+|-----------|-------------|----------------|
+| Viscosity (μ) | ±15% | Batch variation, temperature sensitivity |
+| Pipe diameter (D) | ±2% | Manufacturing tolerance |
+| Compressor SCFM | ±5% | Altitude, maintenance, wear |
+| Tank volume (V) | ±3% | Fill gauge uncertainty |
+| Liquid density (ρ) | ±2% | Temperature, concentration |
+| K-fittings (K) | ±20% | Fitting condition, installation |
+| Elevation (Δz) | ±0.5 ft | Survey accuracy |
