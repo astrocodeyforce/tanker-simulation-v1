@@ -56,7 +56,9 @@ model TankerTransferV2
   parameter Real rho_L(unit="kg/m3") = 1000.0
     "Liquid density [kg/m³]";
   parameter Real mu_L(unit="Pa.s") = 0.1
-    "Liquid dynamic viscosity [Pa·s] (default 100 cP)";
+    "Liquid dynamic viscosity [Pa·s] (default 100 cP) — consistency index K for power-law fluids";
+  parameter Real n_power_law(unit="1") = 1.0
+    "Power-law flow index: 1.0=Newtonian, <1=shear-thinning, >1=shear-thickening";
 
   // --- Outlet valve ---
   parameter Real D_valve(unit="m") = 0.0762
@@ -133,6 +135,10 @@ model TankerTransferV2
   // --- Simulation ---
   parameter Real V_liquid_min(unit="m3") = 0.038
     "Minimum liquid volume before stop [m³] (default ~10 gal)";
+
+  // --- Two-phase end-of-unload ---
+  parameter Real D_outlet(unit="m") = 0.0762
+    "Outlet nozzle diameter [m] (default 3 in) — two-phase onset when h_liquid < D_outlet";
 
   // =========================================================================
   // DERIVED PARAMETERS (computed once at init)
@@ -226,6 +232,18 @@ model TankerTransferV2
   // Effective valve K
   Real K_valve_eff "Effective valve K with opening fraction";
 
+  // Effective viscosity (power-law non-Newtonian)
+  // mu_eff = mu_L * (8*v/D)^(n-1)  — when n=1, mu_eff = mu_L (Newtonian)
+  Real mu_eff_valve(unit="Pa.s") "Effective viscosity at valve";
+  Real mu_eff_pipe1(unit="Pa.s") "Effective viscosity in pipe 1";
+  Real mu_eff_pipe2(unit="Pa.s") "Effective viscosity in pipe 2";
+  Real mu_eff_pipe3(unit="Pa.s") "Effective viscosity in pipe 3";
+  Real mu_eff_pipe4(unit="Pa.s") "Effective viscosity in pipe 4";
+  Real mu_eff_pipe5(unit="Pa.s") "Effective viscosity in pipe 5";
+
+  // Two-phase flow factor (1.0 = pure liquid, 0.0 = fully gas-entrained)
+  Real f_two_phase "Two-phase flow reduction factor [0..1]";
+
   // Output tracking
   Real V_transferred(unit="m3") "Cumulative transferred volume [m³]";
   Real V_transferred_gal "Transferred [gal]";
@@ -280,7 +298,17 @@ equation
   dP_drive = P_gauge + dP_head - (P_receiver - P_atm) - rho_L * g_acc * dz_total;
 
   // =========================================================================
-  // 5) VALVE K MODEL
+  // 5a) TWO-PHASE END-OF-UNLOAD
+  // =========================================================================
+  // When liquid level drops below outlet diameter, air entrains into discharge.
+  // Smooth cubic ramp: f=1 when h >= D_outlet, f->0 when h->0.
+  // This effectively increases apparent resistance (divides driving pressure).
+  f_two_phase = if h_liquid >= D_outlet then 1.0
+    else if h_liquid <= 0 then 0.0
+    else (h_liquid / D_outlet) * (h_liquid / D_outlet) * (3.0 - 2.0 * h_liquid / D_outlet);
+
+  // =========================================================================
+  // 5b) VALVE K MODEL
   // =========================================================================
   K_valve_eff = K_valve_open / max(u_valve * u_valve, 0.01);
 
@@ -295,13 +323,24 @@ equation
   v_pipe4 = Q_L / max(A_pipe4, 1e-10);
   v_pipe5 = Q_L / max(A_pipe5, 1e-10);
 
-  // Reynolds numbers
-  Re_valve = rho_L * abs(v_valve) * D_valve / mu_L;
-  Re_pipe1 = rho_L * abs(v_pipe1) * D_pipe1 / mu_L;
-  Re_pipe2 = rho_L * abs(v_pipe2) * D_pipe2 / mu_L;
-  Re_pipe3 = rho_L * abs(v_pipe3) * D_pipe3 / mu_L;
-  Re_pipe4 = rho_L * abs(v_pipe4) * D_pipe4 / mu_L;
-  Re_pipe5 = rho_L * abs(v_pipe5) * D_pipe5 / mu_L;
+  // Effective viscosity: power-law model  mu_eff = mu_L * (8v/D)^(n-1)
+  // Shear rate gamma_dot = 8*v/D (pipe flow approximation)
+  // When n=1: exponent=0, mu_eff = mu_L (Newtonian — no change)
+  // Floor shear rate at 0.01 s^-1 to avoid 0^(n-1) singularity
+  mu_eff_valve = mu_L * max(8.0 * abs(v_valve) / max(D_valve, 1e-6), 0.01) ^ (n_power_law - 1.0);
+  mu_eff_pipe1 = mu_L * max(8.0 * abs(v_pipe1) / max(D_pipe1, 1e-6), 0.01) ^ (n_power_law - 1.0);
+  mu_eff_pipe2 = mu_L * max(8.0 * abs(v_pipe2) / max(D_pipe2, 1e-6), 0.01) ^ (n_power_law - 1.0);
+  mu_eff_pipe3 = mu_L * max(8.0 * abs(v_pipe3) / max(D_pipe3, 1e-6), 0.01) ^ (n_power_law - 1.0);
+  mu_eff_pipe4 = mu_L * max(8.0 * abs(v_pipe4) / max(D_pipe4, 1e-6), 0.01) ^ (n_power_law - 1.0);
+  mu_eff_pipe5 = mu_L * max(8.0 * abs(v_pipe5) / max(D_pipe5, 1e-6), 0.01) ^ (n_power_law - 1.0);
+
+  // Reynolds numbers (using effective viscosity)
+  Re_valve = rho_L * abs(v_valve) * D_valve / max(mu_eff_valve, 1e-10);
+  Re_pipe1 = rho_L * abs(v_pipe1) * D_pipe1 / max(mu_eff_pipe1, 1e-10);
+  Re_pipe2 = rho_L * abs(v_pipe2) * D_pipe2 / max(mu_eff_pipe2, 1e-10);
+  Re_pipe3 = rho_L * abs(v_pipe3) * D_pipe3 / max(mu_eff_pipe3, 1e-10);
+  Re_pipe4 = rho_L * abs(v_pipe4) * D_pipe4 / max(mu_eff_pipe4, 1e-10);
+  Re_pipe5 = rho_L * abs(v_pipe5) * D_pipe5 / max(mu_eff_pipe5, 1e-10);
 
   // Friction factors with smooth laminar-turbulent blend
   f_pipe1 = smoothFriction(Re_pipe1, eps_pipe1, D_pipe1);
@@ -346,8 +385,8 @@ equation
   // We state: dP_drive = dP_loss_total  when Q_L > 0
   //           Q_L = 0                    when dP_drive <= 0
 
-  if dP_drive > 0 and V_liquid > V_liquid_min then
-    dP_drive = dP_loss_total;
+  if dP_drive * f_two_phase > 0 and V_liquid > V_liquid_min then
+    dP_drive * f_two_phase = dP_loss_total;
   else
     Q_L = 0;
   end if;

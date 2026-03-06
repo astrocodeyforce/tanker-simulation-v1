@@ -26,26 +26,31 @@ air_supply_scfm: 19.0
 # Liquid Properties
 liquid_density_kg_m3: 1050.0
 liquid_viscosity_cP: 500
+n_power_law: 1.0
 
 # Outlet Valve
 valve_diameter_in: 3.0
 valve_K_open: 0.2
 valve_opening_fraction: 1.0
 
-# Pipe Segments (num_pipes: 1)
-num_pipes: 1
+# Pipe Segments (3 active, 2 inactive)
+# Seg 1: Tank outlet nozzle — sharp-edged entrance K=0.50
+num_pipes: 3
 pipe1_diameter_in: 3.0
-pipe1_length_ft: 20.0
-pipe1_roughness_mm: 0.01
-pipe1_K_minor: 2.5
+pipe1_length_ft: 1.0
+pipe1_roughness_mm: 0.045
+pipe1_K_minor: 0.50
+# Seg 2: Discharge hose — 2 × cam-lock coupling K=0.25+0.25
 pipe2_diameter_in: 3.0
-pipe2_length_ft: 0.0
+pipe2_length_ft: 20.0
 pipe2_roughness_mm: 0.01
-pipe2_K_minor: 0.0
+pipe2_K_minor: 0.50
+# Seg 3: Customer connection — 90° elbow (0.3) + tee-branch (0.8) + exit (1.0)
 pipe3_diameter_in: 3.0
-pipe3_length_ft: 0.0
-pipe3_roughness_mm: 0.01
-pipe3_K_minor: 0.0
+pipe3_length_ft: 1.0
+pipe3_roughness_mm: 0.045
+pipe3_K_minor: 2.10
+# Seg 4-5: Inactive (available for custom configurations)
 pipe4_diameter_in: 3.0
 pipe4_length_ft: 0.0
 pipe4_roughness_mm: 0.01

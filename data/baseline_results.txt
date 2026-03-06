@@ -1,0 +1,12 @@
+# BASELINE RESULTS — Before Tier 1+2 Changes
+# Model: TankerTransferV2.mo (single pipe segment: L=20ft, K=2.5)
+# Date: 2025-03-06
+# Config: pipe1 L=20ft K=2.5, pipe2-5 inactive, valve K_open=0.2, 19 SCFM
+#
+# Product               Visc(cP)  Time(min)  AvgGPM  PeakGPM  FinalPsig  Status
+# ============================================================================
+# OCD                       0.6     47.0     136.4    166.1     22.8      PASS
+# Ethylene Glycol          16.1     48.0     134.0    159.6     22.8      PASS
+# Resin Solution          500.0     57.2     113.5    120.7     25.7      PASS
+# Tall Oil Rosin         5000.0    110.1      59.2     61.5     25.7      FAIL
+# Perchloroethylene      9900.0    163.2      39.8     42.8     25.7      FAIL

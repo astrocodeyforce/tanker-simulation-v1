@@ -82,6 +82,7 @@ c_clearance = g("compressor_clearance", 0.0)  # 0=plant_air, 0.02=rotary_vane, 0
 # Liquid
 rho_L = g("liquid_density_kg_m3", 1000.0)
 mu_L = g("liquid_viscosity_cP", 100.0) * CP_TO_PAS
+n_power_law = g("n_power_law", 1.0)  # 1.0 = Newtonian (default)
 
 # Valve
 D_valve = g("valve_diameter_in", 3.0) * IN_TO_M
@@ -126,6 +127,9 @@ P_receiver = P_atm + P_receiver_gauge
 # Minimum volume
 V_liquid_min = g("min_liquid_volume_gal", 10.0) * GAL_TO_M3
 
+# Two-phase end-of-unload
+D_outlet = g("outlet_diameter_in", 3.0) * IN_TO_M  # defaults to 3 in (same as valve)
+
 # ── Build override map ──
 overrides = {
     "V_tank": V_tank,
@@ -143,6 +147,7 @@ overrides = {
     "c_clearance": c_clearance,
     "rho_L": rho_L,
     "mu_L": mu_L,
+    "n_power_law": n_power_law,
     "D_valve": D_valve,
     "K_valve_open": K_valve_open,
     "u_valve": u_valve,
@@ -169,6 +174,7 @@ overrides = {
     "dz_total": dz_total,
     "P_receiver": P_receiver,
     "V_liquid_min": V_liquid_min,
+    "D_outlet": D_outlet,
 }
 
 override_str = ",".join(f"{k}={v}" for k, v in overrides.items())

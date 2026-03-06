@@ -5,10 +5,20 @@ and batch-run them through the TankerTransferV2 simulation.
 
 Standard rig assumptions:
   - Tank: T5183 (75" diameter, 30.5 ft barrel, 7000 gal)
-  - Air supply: 40 SCFM (typical compressor)
+  - Air supply: 19 SCFM (typical PTO compressor)
   - No pre-pressurization (0 psig — confirmed best by sweep data)
-  - 1 pipe segment: 3" valve → 3" hose 20 ft
   - Temperature: 20 °C
+
+Piping layout (3 segments + valve, total 22 ft):
+  Valve:  3" butterfly, K_open=0.2                    (separate element)
+  Seg 1:  Tank outlet nozzle — 1 ft, K=0.50           (sharp-edged entrance)
+  Seg 2:  Discharge hose     — 20 ft, K=0.50          (cam-lock × 2: 0.25+0.25)
+  Seg 3:  Customer connection — 1 ft, K=2.10          (90° elbow 0.3 + tee-branch 0.8 + exit 1.0)
+
+Minor-loss K values from Crane TP-410 / White's Fluid Mechanics:
+  Sharp-edged entrance:  0.50   |  Cam-lock coupling:  0.25
+  90° elbow (standard):  0.30   |  Tee (branch flow):  0.80
+  Exit loss (to tank):   1.00   |  Ball valve (open):  0.05
 """
 
 import os
@@ -43,26 +53,31 @@ air_supply_scfm: 19.0
 # Liquid Properties
 liquid_density_kg_m3: {density_kg_m3:.1f}
 liquid_viscosity_cP: {viscosity_cP}
+n_power_law: 1.0
 
 # Outlet Valve
 valve_diameter_in: 3.0
 valve_K_open: 0.2
 valve_opening_fraction: 1.0
 
-# Pipe Segments (num_pipes: 1)
-num_pipes: 1
+# Pipe Segments (3 active, 2 inactive)
+# Seg 1: Tank outlet nozzle — sharp-edged entrance K=0.50
+num_pipes: 3
 pipe1_diameter_in: 3.0
-pipe1_length_ft: 20.0
-pipe1_roughness_mm: 0.01
-pipe1_K_minor: 2.5
+pipe1_length_ft: 1.0
+pipe1_roughness_mm: 0.045
+pipe1_K_minor: 0.50
+# Seg 2: Discharge hose — 2 × cam-lock coupling K=0.25+0.25
 pipe2_diameter_in: 3.0
-pipe2_length_ft: 0.0
+pipe2_length_ft: 20.0
 pipe2_roughness_mm: 0.01
-pipe2_K_minor: 0.0
+pipe2_K_minor: 0.50
+# Seg 3: Customer connection — 90° elbow (0.3) + tee-branch (0.8) + exit (1.0)
 pipe3_diameter_in: 3.0
-pipe3_length_ft: 0.0
-pipe3_roughness_mm: 0.01
-pipe3_K_minor: 0.0
+pipe3_length_ft: 1.0
+pipe3_roughness_mm: 0.045
+pipe3_K_minor: 2.10
+# Seg 4-5: Inactive (available for custom configurations)
 pipe4_diameter_in: 3.0
 pipe4_length_ft: 0.0
 pipe4_roughness_mm: 0.01

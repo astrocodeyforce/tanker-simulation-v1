@@ -1,0 +1,173 @@
+{
+  "ocd": {
+    "label": "OCD (0.6 cP)",
+    "params": {
+      "mu": {
+        "label": "Viscosity (\u03bc)",
+        "t_plus": 47.516666666666666,
+        "t_minus": 47.483333333333334,
+        "contribution_min": 0.01666666666666572,
+        "contribution_sq": 0.0002777777777777462
+      },
+      "D": {
+        "label": "Pipe diameter (D)",
+        "t_plus": 47.25,
+        "t_minus": 47.78333333333333,
+        "contribution_min": -0.2666666666666657,
+        "contribution_sq": 0.07111111111111061
+      },
+      "SCFM": {
+        "label": "Air supply (SCFM)",
+        "t_plus": 45.53333333333333,
+        "t_minus": 49.7,
+        "contribution_min": -2.0833333333333357,
+        "contribution_sq": 4.3402777777777874
+      },
+      "V": {
+        "label": "Initial volume (V)",
+        "t_plus": 48.85,
+        "t_minus": 46.166666666666664,
+        "contribution_min": 1.3416666666666686,
+        "contribution_sq": 1.8000694444444496
+      },
+      "rho": {
+        "label": "Density (\u03c1)",
+        "t_plus": 47.53333333333333,
+        "t_minus": 47.46666666666667,
+        "contribution_min": 0.03333333333333144,
+        "contribution_sq": 0.0011111111111109847
+      },
+      "K": {
+        "label": "Minor losses (K)",
+        "t_plus": 47.916666666666664,
+        "t_minus": 47.083333333333336,
+        "contribution_min": 0.4166666666666643,
+        "contribution_sq": 0.17361111111110913
+      },
+      "dz": {
+        "label": "Elevation (\u0394z)",
+        "t_plus": 48.18333333333333,
+        "t_minus": 46.833333333333336,
+        "contribution_min": 0.6749999999999972,
+        "contribution_sq": 0.45562499999999617
+      }
+    },
+    "t_base_min": 47.5,
+    "rss_total_min": 2.6157376270056867,
+    "rss_pct": 5.506816056854078
+  },
+  "resin_solution": {
+    "label": "Resin Solution (500 cP)",
+    "params": {
+      "mu": {
+        "label": "Viscosity (\u03bc)",
+        "t_plus": 59.916666666666664,
+        "t_minus": 56.81666666666667,
+        "contribution_min": 1.5499999999999972,
+        "contribution_sq": 2.402499999999991
+      },
+      "D": {
+        "label": "Pipe diameter (D)",
+        "t_plus": 57.483333333333334,
+        "t_minus": 59.36666666666667,
+        "contribution_min": -0.9416666666666664,
+        "contribution_sq": 0.8867361111111106
+      },
+      "SCFM": {
+        "label": "Air supply (SCFM)",
+        "t_plus": 56.233333333333334,
+        "t_minus": 60.766666666666666,
+        "contribution_min": -2.2666666666666657,
+        "contribution_sq": 5.137777777777774
+      },
+      "V": {
+        "label": "Initial volume (V)",
+        "t_plus": 59.733333333333334,
+        "t_minus": 57.05,
+        "contribution_min": 1.3416666666666686,
+        "contribution_sq": 1.8000694444444496
+      },
+      "rho": {
+        "label": "Density (\u03c1)",
+        "t_plus": 58.38333333333333,
+        "t_minus": 58.4,
+        "contribution_min": -0.00833333333333286,
+        "contribution_sq": 6.944444444443654e-05
+      },
+      "K": {
+        "label": "Minor losses (K)",
+        "t_plus": 58.666666666666664,
+        "t_minus": 58.1,
+        "contribution_min": 0.28333333333333144,
+        "contribution_sq": 0.0802777777777767
+      },
+      "dz": {
+        "label": "Elevation (\u0394z)",
+        "t_plus": 58.983333333333334,
+        "t_minus": 57.8,
+        "contribution_min": 0.5916666666666686,
+        "contribution_sq": 0.3500694444444467
+      }
+    },
+    "t_base_min": 58.38333333333333,
+    "rss_total_min": 3.264582668581084,
+    "rss_pct": 5.591634602194263
+  },
+  "tall_oil_rosin": {
+    "label": "Tall Oil Rosin (5000 cP)",
+    "params": {
+      "mu": {
+        "label": "Viscosity (\u03bc)",
+        "t_plus": 120.68333333333334,
+        "t_minus": 107.4,
+        "contribution_min": 6.641666666666666,
+        "contribution_sq": 44.1117361111111
+      },
+      "D": {
+        "label": "Pipe diameter (D)",
+        "t_plus": 110.81666666666666,
+        "t_minus": 117.95,
+        "contribution_min": -3.56666666666667,
+        "contribution_sq": 12.721111111111135
+      },
+      "SCFM": {
+        "label": "Air supply (SCFM)",
+        "t_plus": 110.93333333333334,
+        "t_minus": 117.88333333333334,
+        "contribution_min": -3.4750000000000014,
+        "contribution_sq": 12.07562500000001
+      },
+      "V": {
+        "label": "Initial volume (V)",
+        "t_plus": 115.61666666666666,
+        "t_minus": 112.88333333333334,
+        "contribution_min": 1.36666666666666,
+        "contribution_sq": 1.8677777777777596
+      },
+      "rho": {
+        "label": "Density (\u03c1)",
+        "t_plus": 114.23333333333333,
+        "t_minus": 114.3,
+        "contribution_min": -0.03333333333333144,
+        "contribution_sq": 0.0011111111111109847
+      },
+      "K": {
+        "label": "Minor losses (K)",
+        "t_plus": 114.33333333333333,
+        "t_minus": 114.2,
+        "contribution_min": 0.06666666666666288,
+        "contribution_sq": 0.004444444444443939
+      },
+      "dz": {
+        "label": "Elevation (\u0394z)",
+        "t_plus": 114.75,
+        "t_minus": 113.78333333333333,
+        "contribution_min": 0.4833333333333343,
+        "contribution_sq": 0.23361111111111202
+      }
+    },
+    "t_base_min": 114.26666666666667,
+    "rss_total_min": 8.427064534383646,
+    "rss_pct": 7.374910619355584
+  }
+}
