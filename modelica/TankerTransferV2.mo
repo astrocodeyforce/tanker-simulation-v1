@@ -48,6 +48,10 @@ model TankerTransferV2
   parameter Real mdot_air_max(unit="kg/s") = 0.01098
     "Max air mass inflow [kg/s] (default 19 SCFM)";
 
+  // --- Compressor curve ---
+  parameter Real c_clearance(unit="1") = 0.0
+    "Compressor clearance ratio: 0=constant/plant air, 0.02=rotary vane, 0.04=reciprocating";
+
   // --- Liquid properties ---
   parameter Real rho_L(unit="kg/m3") = 1000.0
     "Liquid density [kg/m³]";
@@ -81,6 +85,36 @@ model TankerTransferV2
     "Segment 2 roughness [m]";
   parameter Real K_pipe2(unit="1") = 1.0
     "Segment 2 minor loss K (fittings)";
+
+  // --- Discharge pipe segment 3 (inactive by default: L=0) ---
+  parameter Real D_pipe3(unit="m") = 0.0762
+    "Segment 3 inner diameter [m]";
+  parameter Real L_pipe3(unit="m") = 0.0
+    "Segment 3 length [m] (0 = not used)";
+  parameter Real eps_pipe3(unit="m") = 1e-5
+    "Segment 3 roughness [m]";
+  parameter Real K_pipe3(unit="1") = 0.0
+    "Segment 3 minor loss K";
+
+  // --- Discharge pipe segment 4 (inactive by default: L=0) ---
+  parameter Real D_pipe4(unit="m") = 0.0762
+    "Segment 4 inner diameter [m]";
+  parameter Real L_pipe4(unit="m") = 0.0
+    "Segment 4 length [m] (0 = not used)";
+  parameter Real eps_pipe4(unit="m") = 1e-5
+    "Segment 4 roughness [m]";
+  parameter Real K_pipe4(unit="1") = 0.0
+    "Segment 4 minor loss K";
+
+  // --- Discharge pipe segment 5 (inactive by default: L=0) ---
+  parameter Real D_pipe5(unit="m") = 0.0762
+    "Segment 5 inner diameter [m]";
+  parameter Real L_pipe5(unit="m") = 0.0
+    "Segment 5 length [m] (0 = not used)";
+  parameter Real eps_pipe5(unit="m") = 1e-5
+    "Segment 5 roughness [m]";
+  parameter Real K_pipe5(unit="1") = 0.0
+    "Segment 5 minor loss K";
 
   // --- Elevation and receiver ---
   parameter Real dz_total(unit="m") = 0.0
@@ -119,6 +153,9 @@ model TankerTransferV2
   parameter Real A_valve = pi * (D_valve/2)^2 "Valve flow area [m²]";
   parameter Real A_pipe1 = pi * (D_pipe1/2)^2 "Pipe seg 1 flow area [m²]";
   parameter Real A_pipe2 = pi * (D_pipe2/2)^2 "Pipe seg 2 flow area [m²]";
+  parameter Real A_pipe3 = pi * (D_pipe3/2)^2 "Pipe seg 3 flow area [m²]";
+  parameter Real A_pipe4 = pi * (D_pipe4/2)^2 "Pipe seg 4 flow area [m²]";
+  parameter Real A_pipe5 = pi * (D_pipe5/2)^2 "Pipe seg 5 flow area [m²]";
 
   // =========================================================================
   // STATE VARIABLES
@@ -154,21 +191,37 @@ model TankerTransferV2
   Real v_valve(unit="m/s") "Velocity through valve [m/s]";
   Real v_pipe1(unit="m/s") "Velocity in pipe segment 1 [m/s]";
   Real v_pipe2(unit="m/s") "Velocity in pipe segment 2 [m/s]";
+  Real v_pipe3(unit="m/s") "Velocity in pipe segment 3 [m/s]";
+  Real v_pipe4(unit="m/s") "Velocity in pipe segment 4 [m/s]";
+  Real v_pipe5(unit="m/s") "Velocity in pipe segment 5 [m/s]";
   Real Re_valve "Reynolds number at valve";
   Real Re_pipe1 "Reynolds number in pipe 1";
   Real Re_pipe2 "Reynolds number in pipe 2";
+  Real Re_pipe3 "Reynolds number in pipe 3";
+  Real Re_pipe4 "Reynolds number in pipe 4";
+  Real Re_pipe5 "Reynolds number in pipe 5";
   Real f_pipe1 "Darcy friction factor pipe 1";
   Real f_pipe2 "Darcy friction factor pipe 2";
+  Real f_pipe3 "Darcy friction factor pipe 3";
+  Real f_pipe4 "Darcy friction factor pipe 4";
+  Real f_pipe5 "Darcy friction factor pipe 5";
 
   // Pressure drops per segment
   Real dP_valve(unit="Pa") "Pressure drop across valve [Pa]";
   Real dP_seg1(unit="Pa") "Pressure drop in pipe segment 1 [Pa]";
   Real dP_seg2(unit="Pa") "Pressure drop in pipe segment 2 [Pa]";
+  Real dP_seg3(unit="Pa") "Pressure drop in pipe segment 3 [Pa]";
+  Real dP_seg4(unit="Pa") "Pressure drop in pipe segment 4 [Pa]";
+  Real dP_seg5(unit="Pa") "Pressure drop in pipe segment 5 [Pa]";
   Real dP_loss_total(unit="Pa") "Total liquid-side pressure loss [Pa]";
 
   // Air flows
   Real mdot_air_in(unit="kg/s") "Actual air mass inflow [kg/s]";
   Real mdot_relief(unit="kg/s") "Relief valve mass outflow [kg/s]";
+
+  // Compressor curve
+  Real r_comp "Compression pressure ratio P_tank/P_atm";
+  Real eta_vol "Compressor volumetric efficiency [0..1]";
 
   // Effective valve K
   Real K_valve_eff "Effective valve K with opening fraction";
@@ -238,15 +291,24 @@ equation
   v_valve = Q_L / max(A_valve, 1e-10);
   v_pipe1 = Q_L / max(A_pipe1, 1e-10);
   v_pipe2 = Q_L / max(A_pipe2, 1e-10);
+  v_pipe3 = Q_L / max(A_pipe3, 1e-10);
+  v_pipe4 = Q_L / max(A_pipe4, 1e-10);
+  v_pipe5 = Q_L / max(A_pipe5, 1e-10);
 
   // Reynolds numbers
   Re_valve = rho_L * abs(v_valve) * D_valve / mu_L;
   Re_pipe1 = rho_L * abs(v_pipe1) * D_pipe1 / mu_L;
   Re_pipe2 = rho_L * abs(v_pipe2) * D_pipe2 / mu_L;
+  Re_pipe3 = rho_L * abs(v_pipe3) * D_pipe3 / mu_L;
+  Re_pipe4 = rho_L * abs(v_pipe4) * D_pipe4 / mu_L;
+  Re_pipe5 = rho_L * abs(v_pipe5) * D_pipe5 / mu_L;
 
   // Friction factors with smooth laminar-turbulent blend
   f_pipe1 = smoothFriction(Re_pipe1, eps_pipe1, D_pipe1);
   f_pipe2 = smoothFriction(Re_pipe2, eps_pipe2, D_pipe2);
+  f_pipe3 = smoothFriction(Re_pipe3, eps_pipe3, D_pipe3);
+  f_pipe4 = smoothFriction(Re_pipe4, eps_pipe4, D_pipe4);
+  f_pipe5 = smoothFriction(Re_pipe5, eps_pipe5, D_pipe5);
 
   // Pressure drops
   // Valve: minor loss only (L=0)
@@ -260,8 +322,20 @@ equation
   dP_seg2 = f_pipe2 * (L_pipe2/max(D_pipe2,1e-6)) * (rho_L * v_pipe2 * abs(v_pipe2) / 2.0)
            + K_pipe2 * (rho_L * v_pipe2 * abs(v_pipe2) / 2.0);
 
+  // Pipe 3: major + minor (zero when L_pipe3=0)
+  dP_seg3 = f_pipe3 * (L_pipe3/max(D_pipe3,1e-6)) * (rho_L * v_pipe3 * abs(v_pipe3) / 2.0)
+           + K_pipe3 * (rho_L * v_pipe3 * abs(v_pipe3) / 2.0);
+
+  // Pipe 4: major + minor (zero when L_pipe4=0)
+  dP_seg4 = f_pipe4 * (L_pipe4/max(D_pipe4,1e-6)) * (rho_L * v_pipe4 * abs(v_pipe4) / 2.0)
+           + K_pipe4 * (rho_L * v_pipe4 * abs(v_pipe4) / 2.0);
+
+  // Pipe 5: major + minor (zero when L_pipe5=0)
+  dP_seg5 = f_pipe5 * (L_pipe5/max(D_pipe5,1e-6)) * (rho_L * v_pipe5 * abs(v_pipe5) / 2.0)
+           + K_pipe5 * (rho_L * v_pipe5 * abs(v_pipe5) / 2.0);
+
   // Total loss
-  dP_loss_total = dP_valve + dP_seg1 + dP_seg2;
+  dP_loss_total = dP_valve + dP_seg1 + dP_seg2 + dP_seg3 + dP_seg4 + dP_seg5;
 
   // =========================================================================
   // 7) FLOW EQUATION (algebraic: drive = loss)
@@ -279,14 +353,21 @@ equation
   end if;
 
   // =========================================================================
-  // 8) AIR INLET WITH PRESSURE CONTROLLER
+  // 8) AIR INLET WITH COMPRESSOR CURVE & PRESSURE CONTROLLER
   // =========================================================================
-  // Simple model: constant mass flow, shut off when P >= P_max
-  // Soft ramp-down over 5000 Pa band to avoid solver discontinuity
+  // Volumetric efficiency model: eta_v = 1 - c * (r^(1/gamma) - 1)
+  // c_clearance = 0: constant flow (plant air / ideal compressor)
+  // c_clearance = 0.02: rotary vane (PTO truck compressor)
+  // c_clearance = 0.04: typical reciprocating portable compressor
+  // c_clearance = 0.06: worn/cheap reciprocating compressor
+  r_comp = max(P_tank / P_atm, 1.0);
+  eta_vol = max(0.0, 1.0 - c_clearance * (r_comp^(1.0/gamma_air) - 1.0));
+
+  // Mass flow with curve + soft ramp-down at P_max
   mdot_air_in = if P_tank < P_max_abs then
-    mdot_air_max
+    mdot_air_max * eta_vol
   else
-    mdot_air_max * max(0.0, 1.0 - (P_tank - P_max_abs) / 5000.0);
+    mdot_air_max * eta_vol * max(0.0, 1.0 - (P_tank - P_max_abs) / 5000.0);
 
   // =========================================================================
   // 9) RELIEF VALVE
