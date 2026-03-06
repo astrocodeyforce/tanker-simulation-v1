@@ -77,9 +77,12 @@ PRESETS = {
         "relief_valve_Cd": 0.62, "relief_valve_diameter_in": 1.0,
         "air_supply_scfm": 19.0,
         "liquid_density_kg_m3": 1050.0, "liquid_viscosity_cP": 100.0,
+        "n_power_law": 1.0, "outlet_diameter_in": 3.0,
         "valve_diameter_in": 3.0, "valve_K_open": 0.2, "valve_opening_fraction": 1.0,
-        "num_pipes": 1,
-        "pipe1_diameter_in": 3.0, "pipe1_length_ft": 20.0, "pipe1_roughness_mm": 0.01, "pipe1_K_minor": 2.5,
+        "num_pipes": 3,
+        "pipe1_diameter_in": 3.0, "pipe1_length_ft": 1.0, "pipe1_roughness_mm": 0.01, "pipe1_K_minor": 0.5,
+        "pipe2_diameter_in": 3.0, "pipe2_length_ft": 20.0, "pipe2_roughness_mm": 0.01, "pipe2_K_minor": 0.5,
+        "pipe3_diameter_in": 3.0, "pipe3_length_ft": 1.0, "pipe3_roughness_mm": 0.01, "pipe3_K_minor": 2.1,
         "elevation_change_ft": 0.0, "receiver_pressure_psig": 0.0,
         "stop_time_s": 5400, "output_interval_s": 1.0, "min_liquid_volume_gal": 1.0,
     },
@@ -91,9 +94,12 @@ PRESETS = {
         "relief_valve_Cd": 0.62, "relief_valve_diameter_in": 1.0,
         "air_supply_scfm": 19.0,
         "liquid_density_kg_m3": 850.0, "liquid_viscosity_cP": 1.0,
+        "n_power_law": 1.0, "outlet_diameter_in": 3.0,
         "valve_diameter_in": 3.0, "valve_K_open": 0.2, "valve_opening_fraction": 1.0,
-        "num_pipes": 1,
-        "pipe1_diameter_in": 3.0, "pipe1_length_ft": 20.0, "pipe1_roughness_mm": 0.01, "pipe1_K_minor": 2.5,
+        "num_pipes": 3,
+        "pipe1_diameter_in": 3.0, "pipe1_length_ft": 1.0, "pipe1_roughness_mm": 0.01, "pipe1_K_minor": 0.5,
+        "pipe2_diameter_in": 3.0, "pipe2_length_ft": 20.0, "pipe2_roughness_mm": 0.01, "pipe2_K_minor": 0.5,
+        "pipe3_diameter_in": 3.0, "pipe3_length_ft": 1.0, "pipe3_roughness_mm": 0.01, "pipe3_K_minor": 2.1,
         "elevation_change_ft": 0.0, "receiver_pressure_psig": 0.0,
         "stop_time_s": 3600, "output_interval_s": 1.0, "min_liquid_volume_gal": 1.0,
     },
@@ -105,10 +111,12 @@ PRESETS = {
         "relief_valve_Cd": 0.62, "relief_valve_diameter_in": 1.0,
         "air_supply_scfm": 19.0,
         "liquid_density_kg_m3": 1200.0, "liquid_viscosity_cP": 500.0,
+        "n_power_law": 1.0, "outlet_diameter_in": 2.0,
         "valve_diameter_in": 2.0, "valve_K_open": 0.3, "valve_opening_fraction": 1.0,
-        "num_pipes": 2,
-        "pipe1_diameter_in": 2.0, "pipe1_length_ft": 30.0, "pipe1_roughness_mm": 0.01, "pipe1_K_minor": 2.0,
-        "pipe2_diameter_in": 2.0, "pipe2_length_ft": 30.0, "pipe2_roughness_mm": 0.01, "pipe2_K_minor": 1.5,
+        "num_pipes": 3,
+        "pipe1_diameter_in": 2.0, "pipe1_length_ft": 1.0, "pipe1_roughness_mm": 0.01, "pipe1_K_minor": 0.5,
+        "pipe2_diameter_in": 2.0, "pipe2_length_ft": 20.0, "pipe2_roughness_mm": 0.01, "pipe2_K_minor": 0.5,
+        "pipe3_diameter_in": 2.0, "pipe3_length_ft": 1.0, "pipe3_roughness_mm": 0.01, "pipe3_K_minor": 2.1,
         "elevation_change_ft": 3.0, "receiver_pressure_psig": 0.0,
         "stop_time_s": 10800, "output_interval_s": 2.0, "min_liquid_volume_gal": 1.0,
     },
@@ -219,6 +227,10 @@ def generate_yaml_config(params: dict, scenario_name: str) -> str:
         f"# Elevation & Receiver",
         f"elevation_change_ft: {params['elevation_change_ft']}",
         f"receiver_pressure_psig: {params['receiver_pressure_psig']}",
+        f"",
+        f"# Non-Newtonian & Two-Phase",
+        f"n_power_law: {params.get('n_power_law', 1.0)}",
+        f"outlet_diameter_in: {params.get('outlet_diameter_in', 3.0)}",
         f"",
         f"# Simulation",
         f"stop_time_s: {int(params['stop_time_s'])}",
@@ -408,6 +420,47 @@ def build_engineering_charts(df, scenario=""):
             xaxis_title="Time (min)", yaxis_title="Flow (g/s)",
             template="plotly_white", height=400)
         charts.append(fig)
+
+    # Effective Viscosity (non-Newtonian)
+    mu_cols = [("mu_eff_valve", "Valve", COLORS["valve"]),
+               ("mu_eff_pipe1", "Pipe 1", COLORS["seg1"]),
+               ("mu_eff_pipe2", "Pipe 2", COLORS["seg2"]),
+               ("mu_eff_pipe3", "Pipe 3", COLORS["seg3"]),
+               ("mu_eff_pipe4", "Pipe 4", COLORS["seg4"]),
+               ("mu_eff_pipe5", "Pipe 5", COLORS["seg5"])]
+    mu_plotted = False
+    fig = go.Figure()
+    for col, label, color in mu_cols:
+        if col in df.columns:
+            vals = df[col] * 1000  # Pa·s → cP
+            # Only show if there's meaningful variation (non-Newtonian) or always show pipe1
+            if vals.max() > 0 and (col == "mu_eff_pipe1" or vals.std() > 0.001):
+                fig.add_trace(go.Scatter(x=df["time_min"], y=vals,
+                    mode="lines", name=label, line=dict(color=color)))
+                mu_plotted = True
+    if mu_plotted:
+        fig.update_layout(title="Effective Viscosity (Power-Law)",
+            xaxis_title="Time (min)", yaxis_title="μ_eff (cP)",
+            template="plotly_white", height=400)
+        charts.append(fig)
+
+    # Two-Phase Factor (end-of-unload)
+    if "f_two_phase" in df.columns:
+        fp = df["f_two_phase"]
+        if fp.min() < 0.999:  # Only show if two-phase actually activates
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(x=df["time_min"], y=fp,
+                mode="lines", name="f_two_phase",
+                line=dict(color="#FF6692", width=2)))
+            fig.add_hline(y=1.0, line_dash="dash", line_color="gray",
+                annotation_text="Full liquid flow")
+            fig.add_hline(y=0.5, line_dash="dot", line_color="orange",
+                annotation_text="50% two-phase")
+            fig.update_layout(title="Two-Phase Factor (End-of-Unload)",
+                xaxis_title="Time (min)", yaxis_title="f_two_phase (0–1)",
+                yaxis_range=[-0.05, 1.1],
+                template="plotly_white", height=400)
+            charts.append(fig)
 
     return charts
 
@@ -795,6 +848,13 @@ def page_run_simulation():
             value=float(defaults["liquid_viscosity_cP"]), step=1.0, format="%.1f",
             help="Viscosity = resistance to flow. Water = 1 cP, Honey ≈ 3000 cP. Thicker liquids flow slower and need more pressure.")
 
+        st.subheader("Non-Newtonian (Power-Law) Behavior")
+        st.caption("Most liquids are Newtonian (n = 1.0). Shear-thinning fluids like latex or polymers have n < 1.")
+        params["n_power_law"] = st.number_input(
+            "Power-Law Index (n)", min_value=0.1, max_value=2.0,
+            value=float(defaults.get("n_power_law", 1.0)), step=0.05, format="%.2f",
+            help="n = 1.0 → Newtonian (normal). n < 1.0 → shear-thinning (gets thinner when pumped faster, e.g. latex, ketchup). n > 1.0 → shear-thickening (rare). Requires rheometer data to know your product's n value.")
+
         st.info("""
         **Pick values from this table based on your liquid:**
         | Liquid | Density (kg/m³) | SG | Viscosity (cP) |
@@ -807,6 +867,18 @@ def page_run_simulation():
         | Honey | 1400 | 1.400 | 2000–3000 |
         
         *SG (Specific Gravity) = how much heavier than water. SG of 1.05 means 5% heavier than water.*
+
+        **Power-Law Index (n) — common values:**
+        | Liquid Type | n |
+        |-------------|---|
+        | Water, solvents, oils | 1.0 (Newtonian) |
+        | Latex paint | 0.3–0.5 |
+        | Polymer solutions | 0.4–0.8 |
+        | Ketchup, mayonnaise | 0.2–0.4 |
+        | Cement slurry | 0.6–0.9 |
+        | Dilatant (corn starch) | 1.1–1.5 |
+
+        *Leave at 1.0 if you don't know your product's n value — it defaults to standard Newtonian behavior.*
         """)
 
     with tab_air:
@@ -1002,6 +1074,13 @@ def page_run_simulation():
             "Receiver Tank Pressure (psig)", min_value=0.0, max_value=50.0,
             value=float(defaults["receiver_pressure_psig"]), step=0.5, format="%.1f",
             help="Pressure already inside the receiving tank. 0 = open to air (atmospheric). Higher pressure means harder to push liquid in.")
+
+        st.subheader("Two-Phase End-of-Unload")
+        st.caption("When the tank is nearly empty, air starts mixing with liquid at the outlet. This reduces effective flow.")
+        params["outlet_diameter_in"] = st.number_input(
+            "Outlet Nozzle Diameter (inches)", min_value=1.0, max_value=8.0,
+            value=float(defaults.get("outlet_diameter_in", 3.0)), step=0.5, format="%.1f",
+            help="Inside diameter of the tank outlet nozzle. Two-phase flow activates when liquid level drops below this diameter. Usually matches valve size.")
 
     with tab_sim:
         st.subheader("Simulation Settings")
@@ -1357,13 +1436,16 @@ def page_system_info():
     """, language="text")
 
     st.subheader("Model Details")
-    st.markdown("""
+    st.markdown(r"""
     - **Solver:** DASSL (DAE system)
     - **States:** Gas mass ($m_{gas}$), Liquid volume ($V_{liquid}$)
     - **Pipe segments:** Up to 5 in series (unused segments have L=0, contributing zero pressure drop)
     - **Friction:** Smooth laminar↔turbulent blend (Swamee-Jain + cubic smoothstep)
     - **Gas model:** Ideal gas, isothermal
     - **Geometry:** Horizontal cylinder with algebraic level solve
+    - **Non-Newtonian:** Power-law rheology $\mu_{eff} = \mu_L \cdot (8v/D)^{n-1}$ per segment (n=1.0 → Newtonian)
+    - **Two-phase:** End-of-unload cubic smoothstep when $h_{liquid} < D_{outlet}$, reduces drive pressure
+    - **Compressor curve:** Volumetric efficiency with clearance ratio, pressure-dependent SCFM
     """)
 
     st.subheader("Available Runs")
