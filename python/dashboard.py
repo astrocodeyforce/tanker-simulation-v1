@@ -917,6 +917,49 @@ def page_run_simulation():
     with tab_pipe:
         st.caption("The hose/pipe from the tank to the receiving vessel. Add pipe segments for each distinct section of your piping run.")
 
+        # --- Hose material library ---
+        HOSE_MATERIALS = {
+            "Rubber (smooth bore)": 0.01,
+            "Rubber (wire-reinforced)": 0.025,
+            "Stainless Steel 316": 0.015,
+            "Carbon Steel": 0.045,
+            "Galvanized Steel": 0.15,
+            "PVC / Plastic": 0.005,
+            "Corrugated Metal": 0.30,
+            "Custom": None,
+        }
+
+        # --- Fitting K-value library ---
+        COUPLING_K = {
+            "None": 0.0,
+            "Cam-lock / Quick-connect": 0.10,
+            "Threaded union": 0.08,
+            "Flanged": 0.05,
+            "Victaulic / Grooved": 0.15,
+        }
+        ELBOW_K = {
+            "90° long-radius": 0.30,
+            "90° short-radius / sharp": 0.70,
+            "45° elbow": 0.20,
+        }
+        ENTRY_K = {
+            "Sharp-edge (typical)": 0.50,
+            "Well-rounded / bellmouth": 0.04,
+            "Re-entrant (pipe protrudes in)": 0.80,
+        }
+
+        def calc_contraction_K(D_large, D_small):
+            """Sudden contraction K = 0.5 * (1 - (d/D)^2)"""
+            if D_small >= D_large:
+                return 0.0
+            return round(0.5 * (1.0 - (D_small / D_large) ** 2), 2)
+
+        def calc_expansion_K(D_small, D_large):
+            """Sudden expansion K = (1 - (d/D)^2)^2"""
+            if D_small >= D_large:
+                return 0.0
+            return round((1.0 - (D_small / D_large) ** 2) ** 2, 2)
+
         num_pipes = st.number_input(
             "🔧 Number of Pipe Segments", min_value=1, max_value=5,
             value=int(defaults.get("num_pipes", 1)), step=1,
@@ -924,143 +967,145 @@ def page_run_simulation():
             help="How many distinct pipe/hose sections between the tank and receiver? Default is 1. Add more if diameter or material changes along the run.")
         params["num_pipes"] = num_pipes
 
-        # --- Pipe Segment 1 (always shown) ---
-        st.subheader("Pipe Segment 1")
-        c1, c2, c3, c4 = st.columns(4)
-        params["pipe1_diameter_in"] = c1.number_input(
-            "Pipe Diameter (in)", min_value=0.5, max_value=8.0,
-            value=float(defaults["pipe1_diameter_in"]), step=0.5, format="%.1f",
-            key="p1d", help="Inside diameter of the hose/pipe. Common sizes: 2\", 3\", 4\".")
-        params["pipe1_length_ft"] = c2.number_input(
-            "Hose Length (ft)", min_value=1.0, max_value=200.0,
-            value=float(defaults["pipe1_length_ft"]), step=5.0, format="%.1f",
-            key="p1l", help="Total length of this pipe/hose section.")
-        params["pipe1_roughness_mm"] = c3.number_input(
-            "Wall Roughness (mm)", min_value=0.001, max_value=1.0,
-            value=float(defaults["pipe1_roughness_mm"]), step=0.01, format="%.3f",
-            key="p1r", help="How rough the inside wall is. Smooth rubber hose ≈ 0.01, Steel pipe ≈ 0.045, Rusty pipe ≈ 0.5")
-        params["pipe1_K_minor"] = c4.number_input(
-            "Fittings Resistance", min_value=0.0, max_value=20.0,
-            value=float(defaults["pipe1_K_minor"]), step=0.5, format="%.1f",
-            key="p1k", help="Add up resistance values for all elbows, couplings, and fittings in this section. See table below.")
+        # Build each pipe segment
+        for seg in range(1, 6):
+            seg_key = f"pipe{seg}"
+            if seg > num_pipes:
+                params[f"{seg_key}_diameter_in"] = 3.0
+                params[f"{seg_key}_length_ft"] = 0.0
+                params[f"{seg_key}_roughness_mm"] = 0.01
+                params[f"{seg_key}_K_minor"] = 0.0
+                continue
 
-        # --- Pipe Segment 2 ---
-        if num_pipes >= 2:
-            st.subheader("Pipe Segment 2")
-            c1, c2, c3, c4 = st.columns(4)
-            params["pipe2_diameter_in"] = c1.number_input(
-                "Pipe Diameter (in)", min_value=0.5, max_value=8.0,
-                value=float(defaults.get("pipe2_diameter_in", 3.0)), step=0.5, format="%.1f",
-                key="p2d")
-            params["pipe2_length_ft"] = c2.number_input(
+            st.subheader(f"Pipe Segment {seg}")
+
+            # Row 1: Diameter, Length, Material
+            c1, c2, c3 = st.columns(3)
+            pipe_dia = c1.number_input(
+                "Hose ID (inches)", min_value=0.5, max_value=8.0,
+                value=float(defaults.get(f"{seg_key}_diameter_in", 3.0)), step=0.5, format="%.1f",
+                key=f"p{seg}d", help="Inside diameter of the hose/pipe. Common sizes: 2\", 3\", 4\".")
+            params[f"{seg_key}_diameter_in"] = pipe_dia
+
+            params[f"{seg_key}_length_ft"] = c2.number_input(
                 "Hose Length (ft)", min_value=1.0, max_value=200.0,
-                value=float(defaults.get("pipe2_length_ft", 25.0)), step=5.0, format="%.1f",
-                key="p2l")
-            params["pipe2_roughness_mm"] = c3.number_input(
-                "Wall Roughness (mm)", min_value=0.001, max_value=1.0,
-                value=float(defaults.get("pipe2_roughness_mm", 0.01)), step=0.01, format="%.3f",
-                key="p2r")
-            params["pipe2_K_minor"] = c4.number_input(
-                "Fittings Resistance", min_value=0.0, max_value=20.0,
-                value=float(defaults.get("pipe2_K_minor", 1.0)), step=0.5, format="%.1f",
-                key="p2k")
-        else:
-            params["pipe2_diameter_in"] = 3.0
-            params["pipe2_length_ft"] = 0.0
-            params["pipe2_roughness_mm"] = 0.01
-            params["pipe2_K_minor"] = 0.0
+                value=float(defaults.get(f"{seg_key}_length_ft", 25.0)), step=5.0, format="%.1f",
+                key=f"p{seg}l", help="Total length of this pipe/hose section.")
 
-        # --- Pipe Segment 3 ---
-        if num_pipes >= 3:
-            st.subheader("Pipe Segment 3")
-            c1, c2, c3, c4 = st.columns(4)
-            params["pipe3_diameter_in"] = c1.number_input(
-                "Pipe Diameter (in)", min_value=0.5, max_value=8.0,
-                value=float(defaults.get("pipe3_diameter_in", 3.0)), step=0.5, format="%.1f",
-                key="p3d")
-            params["pipe3_length_ft"] = c2.number_input(
-                "Hose Length (ft)", min_value=1.0, max_value=200.0,
-                value=float(defaults.get("pipe3_length_ft", 25.0)), step=5.0, format="%.1f",
-                key="p3l")
-            params["pipe3_roughness_mm"] = c3.number_input(
-                "Wall Roughness (mm)", min_value=0.001, max_value=1.0,
-                value=float(defaults.get("pipe3_roughness_mm", 0.01)), step=0.01, format="%.3f",
-                key="p3r")
-            params["pipe3_K_minor"] = c4.number_input(
-                "Fittings Resistance", min_value=0.0, max_value=20.0,
-                value=float(defaults.get("pipe3_K_minor", 1.0)), step=0.5, format="%.1f",
-                key="p3k")
-        else:
-            params["pipe3_diameter_in"] = 3.0
-            params["pipe3_length_ft"] = 0.0
-            params["pipe3_roughness_mm"] = 0.01
-            params["pipe3_K_minor"] = 0.0
+            material_names = list(HOSE_MATERIALS.keys())
+            # Pick default material based on stored roughness
+            stored_rough = float(defaults.get(f"{seg_key}_roughness_mm", 0.01))
+            default_mat_idx = 0
+            for i, (name, val) in enumerate(HOSE_MATERIALS.items()):
+                if val is not None and abs(val - stored_rough) < 0.002:
+                    default_mat_idx = i
+                    break
+            material = c3.selectbox(
+                "Hose Material", material_names, index=default_mat_idx,
+                key=f"p{seg}mat", help="Selects wall roughness automatically based on material.")
 
-        # --- Pipe Segment 4 ---
-        if num_pipes >= 4:
-            st.subheader("Pipe Segment 4")
-            c1, c2, c3, c4 = st.columns(4)
-            params["pipe4_diameter_in"] = c1.number_input(
-                "Pipe Diameter (in)", min_value=0.5, max_value=8.0,
-                value=float(defaults.get("pipe4_diameter_in", 3.0)), step=0.5, format="%.1f",
-                key="p4d")
-            params["pipe4_length_ft"] = c2.number_input(
-                "Hose Length (ft)", min_value=1.0, max_value=200.0,
-                value=float(defaults.get("pipe4_length_ft", 25.0)), step=5.0, format="%.1f",
-                key="p4l")
-            params["pipe4_roughness_mm"] = c3.number_input(
-                "Wall Roughness (mm)", min_value=0.001, max_value=1.0,
-                value=float(defaults.get("pipe4_roughness_mm", 0.01)), step=0.01, format="%.3f",
-                key="p4r")
-            params["pipe4_K_minor"] = c4.number_input(
-                "Fittings Resistance", min_value=0.0, max_value=20.0,
-                value=float(defaults.get("pipe4_K_minor", 1.0)), step=0.5, format="%.1f",
-                key="p4k")
-        else:
-            params["pipe4_diameter_in"] = 3.0
-            params["pipe4_length_ft"] = 0.0
-            params["pipe4_roughness_mm"] = 0.01
-            params["pipe4_K_minor"] = 0.0
+            if HOSE_MATERIALS[material] is not None:
+                params[f"{seg_key}_roughness_mm"] = HOSE_MATERIALS[material]
+                st.caption(f"ℹ️ Wall roughness: **{HOSE_MATERIALS[material]} mm** ({material})")
+            else:
+                params[f"{seg_key}_roughness_mm"] = st.number_input(
+                    "Custom Wall Roughness (mm)", min_value=0.001, max_value=1.0,
+                    value=stored_rough, step=0.01, format="%.3f", key=f"p{seg}r_custom")
 
-        # --- Pipe Segment 5 ---
-        if num_pipes >= 5:
-            st.subheader("Pipe Segment 5")
-            c1, c2, c3, c4 = st.columns(4)
-            params["pipe5_diameter_in"] = c1.number_input(
-                "Pipe Diameter (in)", min_value=0.5, max_value=8.0,
-                value=float(defaults.get("pipe5_diameter_in", 3.0)), step=0.5, format="%.1f",
-                key="p5d")
-            params["pipe5_length_ft"] = c2.number_input(
-                "Hose Length (ft)", min_value=1.0, max_value=200.0,
-                value=float(defaults.get("pipe5_length_ft", 25.0)), step=5.0, format="%.1f",
-                key="p5l")
-            params["pipe5_roughness_mm"] = c3.number_input(
-                "Wall Roughness (mm)", min_value=0.001, max_value=1.0,
-                value=float(defaults.get("pipe5_roughness_mm", 0.01)), step=0.01, format="%.3f",
-                key="p5r")
-            params["pipe5_K_minor"] = c4.number_input(
-                "Fittings Resistance", min_value=0.0, max_value=20.0,
-                value=float(defaults.get("pipe5_K_minor", 1.0)), step=0.5, format="%.1f",
-                key="p5k")
-        else:
-            params["pipe5_diameter_in"] = 3.0
-            params["pipe5_length_ft"] = 0.0
-            params["pipe5_roughness_mm"] = 0.01
-            params["pipe5_K_minor"] = 0.0
+            # --- Fitting Builder ---
+            st.markdown(f"**⚙️ Fittings & Connections** — Segment {seg}")
 
-        st.info("""
-        **How to calculate Fittings Resistance:** Add up the values for every fitting in your hose run:
-        | Fitting | Resistance (K) | Example |
-        |---------|---------------|---------|
-        | Cam-lock coupling | 0.3 | Hose connection |
-        | 90° elbow / bend | 0.9 | Sharp turn |
-        | 45° elbow | 0.4 | Gentle turn |
-        | Tee (branch) | 1.8 | T-junction |
-        | Pipe entry | 0.5 | Where liquid enters pipe |
-        | Pipe exit | 1.0 | Where liquid leaves pipe |
-        
-        *Example: 1 entry + 2 cam-locks + 1 elbow + 1 exit = 0.5 + 0.6 + 0.9 + 1.0 = **3.0***
-        """)
+            valve_dia = float(params.get("valve_diameter_in", 3.0))
+
+            # Entry
+            fc1, fc2 = st.columns(2)
+            entry_type = fc1.selectbox(
+                "Pipe Entry", list(ENTRY_K.keys()), index=0,
+                key=f"p{seg}entry", help="How the liquid enters this pipe from the tank or previous section.")
+            k_entry = ENTRY_K[entry_type]
+
+            # Exit is always 1.0
+            k_exit = 1.0
+            fc2.markdown(f"Pipe Exit: **K = 1.00** (always)")
+
+            # Reducers (auto-calculate from valve diameter vs pipe diameter)
+            k_contraction = 0.0
+            k_expansion = 0.0
+            if abs(valve_dia - pipe_dia) > 0.1:
+                st.markdown(f"📐 **Reducers** — Valve is {valve_dia:.0f}\" → Hose is {pipe_dia:.1f}\"")
+                rc1, rc2 = st.columns(2)
+                has_inlet_reducer = rc1.checkbox(
+                    f"Inlet reducer ({valve_dia:.0f}\" → {pipe_dia:.1f}\")", value=True,
+                    key=f"p{seg}red_in",
+                    help="Reducer/adapter at the tank end where valve connects to hose")
+                has_outlet_reducer = rc2.checkbox(
+                    f"Outlet expander ({pipe_dia:.1f}\" → {valve_dia:.0f}\")", value=True,
+                    key=f"p{seg}red_out",
+                    help="Reducer/adapter at the discharge end")
+                if has_inlet_reducer:
+                    if valve_dia > pipe_dia:
+                        k_contraction = calc_contraction_K(valve_dia, pipe_dia)
+                    else:
+                        k_contraction = calc_expansion_K(valve_dia, pipe_dia)
+                if has_outlet_reducer:
+                    if pipe_dia < valve_dia:
+                        k_expansion = calc_expansion_K(pipe_dia, valve_dia)
+                    else:
+                        k_expansion = calc_contraction_K(pipe_dia, valve_dia)
+
+            # Couplings
+            cc1, cc2 = st.columns(2)
+            coupling_type = cc1.selectbox(
+                "Coupling Type", list(COUPLING_K.keys()), index=1,
+                key=f"p{seg}coup_type", help="Type of hose coupling/connection")
+            coupling_qty = cc2.number_input(
+                "Number of Couplings", min_value=0, max_value=10, value=2, step=1,
+                key=f"p{seg}coup_qty", help="How many couplings in this segment (usually 2: one each end)")
+            k_couplings = COUPLING_K[coupling_type] * coupling_qty
+
+            # Elbows
+            ec1, ec2 = st.columns(2)
+            elbow_types = ["None"] + list(ELBOW_K.keys())
+            elbow_type = ec1.selectbox(
+                "Elbow Type", elbow_types, index=0,
+                key=f"p{seg}elbow_type", help="Type of bend in the hose run")
+            elbow_qty = 0
+            k_elbows = 0.0
+            if elbow_type != "None":
+                elbow_qty = ec2.number_input(
+                    "Number of Elbows", min_value=0, max_value=10, value=1, step=1,
+                    key=f"p{seg}elbow_qty")
+                k_elbows = ELBOW_K[elbow_type] * elbow_qty
+
+            # Total K auto-calculated
+            k_total = k_entry + k_exit + k_contraction + k_expansion + k_couplings + k_elbows
+
+            # Show breakdown
+            breakdown_parts = [f"Entry: {k_entry:.2f}"]
+            if k_contraction > 0:
+                breakdown_parts.append(f"Contraction: {k_contraction:.2f}")
+            if k_expansion > 0:
+                breakdown_parts.append(f"Expansion: {k_expansion:.2f}")
+            if k_couplings > 0:
+                breakdown_parts.append(f"Couplings ({coupling_qty}×): {k_couplings:.2f}")
+            if k_elbows > 0:
+                breakdown_parts.append(f"Elbows ({elbow_qty}×): {k_elbows:.2f}")
+            breakdown_parts.append(f"Exit: {k_exit:.2f}")
+
+            st.success(f"**Total K = {k_total:.2f}** — {' + '.join(breakdown_parts)}")
+
+            # Manual override option
+            use_manual = st.checkbox("Override K manually", value=False, key=f"p{seg}k_manual")
+            if use_manual:
+                params[f"{seg_key}_K_minor"] = st.number_input(
+                    "Manual K_minor", min_value=0.0, max_value=30.0,
+                    value=float(k_total), step=0.1, format="%.2f",
+                    key=f"p{seg}k_val")
+            else:
+                params[f"{seg_key}_K_minor"] = round(k_total, 2)
+
+            if seg < num_pipes:
+                st.divider()
 
     with tab_discharge:
         st.subheader("Where Is The Liquid Going?")
