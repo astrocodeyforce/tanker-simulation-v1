@@ -1,16 +1,19 @@
-# Field Validation Test 1 — 2700 gal tank, water, 19 SCFM truck compressor
+# Field Validation Test 1 — Comp #1 (1,923 gal) → Comp #2 (3,060 gal)
+# Setup: compartment-to-compartment transfer on same tanker
+# Hose: 2" ID × 20ft smooth-bore SS316 with 3"→2" reducers each end
+# Compressor: 19 SCFM rated, 70ft small air hose to tank
 # Real-world data: 46 min pre-pressurization to 20 psig, 2:44 discharge
-# Total real-world: ~49 min
+# Liquid: 22" depth in Comp #1 = 518 gal (from calibration chart)
 
-scenario_name: field_test_1_2700gal
+scenario_name: field_test_1_comp1
 
-# Tank Geometry (2700 gal small tanker, estimated 60" diameter)
-tank_total_volume_gal: 2700
-tank_diameter_in: 60.0
+# Tank Geometry — Compartment #1 (calibration chart: 1,923 gal, same tanker ~68" dia)
+tank_total_volume_gal: 1923
+tank_diameter_in: 68.0
 tank_length_ft: 0
 
-# Initial Conditions
-initial_liquid_volume_gal: 875
+# Initial Conditions (518 gal from calibration chart at 22" depth)
+initial_liquid_volume_gal: 518
 initial_tank_pressure_psig: 0.0
 gas_temperature_C: 20.0
 ambient_pressure_psia: 14.696
@@ -21,7 +24,7 @@ relief_valve_pressure_psig: 22.0
 relief_valve_Cd: 0.62
 relief_valve_diameter_in: 1.0
 
-# Air Supply (truck PTO compressor)
+# Air Supply (truck PTO compressor at 9k RPM, 70ft small air hose to tank)
 air_supply_scfm: 19.0
 compressor_clearance: 0.02
 
@@ -39,8 +42,8 @@ valve_opening_fraction: 1.0
 num_pipes: 1
 pipe1_diameter_in: 2.0
 pipe1_length_ft: 20.0
-pipe1_roughness_mm: 0.025
-pipe1_K_minor: 2.5
+pipe1_roughness_mm: 0.015    # smooth-bore SS316
+pipe1_K_minor: 2.59    # 3"→2" contraction(0.33) + expansion(0.56) + couplings(0.20) + entry(0.5) + exit(1.0)
 
 pipe2_diameter_in: 3.0
 pipe2_length_ft: 0.0
@@ -62,12 +65,16 @@ pipe5_length_ft: 0.0
 pipe5_roughness_mm: 0.01
 pipe5_K_minor: 0.0
 
-# Elevation & Receiver (discharging to ground, ~0 elevation)
+# Elevation & Receiver (compartment-to-compartment, same height, vented receiver)
 elevation_change_ft: 0.0
 receiver_pressure_psig: 0.0
 
+# Valve Timing (pre-pressurization)
+# Real-world: valve opened after 46 min (2760s) of pressurizing to 20 psig
+valve_open_time_s: 2760
+
 # Simulation
-stop_time_s: 3600
+stop_time_s: 5400
 output_interval_s: 1.0
 min_liquid_volume_gal: 5
 

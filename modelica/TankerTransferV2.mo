@@ -49,7 +49,7 @@ model TankerTransferV2
     "Max air mass inflow [kg/s] (default 19 SCFM)";
 
   // --- Compressor curve ---
-  parameter Real c_clearance(unit="1") = 0.0
+  parameter Real c_clearance(unit="1") = 0.04
     "Compressor clearance ratio: 0=constant/plant air, 0.02=rotary vane, 0.04=reciprocating";
 
   // --- Liquid properties ---
@@ -131,6 +131,10 @@ model TankerTransferV2
     "Relief valve discharge coefficient";
   parameter Real D_relief(unit="m") = 0.0254
     "Relief valve orifice diameter [m] (default 1 in)";
+
+  // --- Valve timing ---
+  parameter Real t_valve_open(unit="s") = 0
+    "Time when outlet valve opens [s] (0 = open from start, >0 = pre-pressurize first)";
 
   // --- Simulation ---
   parameter Real V_liquid_min(unit="m3") = 0.038
@@ -385,7 +389,7 @@ equation
   // We state: dP_drive = dP_loss_total  when Q_L > 0
   //           Q_L = 0                    when dP_drive <= 0
 
-  if dP_drive * f_two_phase > 0 and V_liquid > V_liquid_min then
+  if dP_drive * f_two_phase > 0 and V_liquid > V_liquid_min and time >= t_valve_open then
     dP_drive * f_two_phase = dP_loss_total;
   else
     Q_L = 0;

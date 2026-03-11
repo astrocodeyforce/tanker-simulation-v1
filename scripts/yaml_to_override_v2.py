@@ -130,6 +130,9 @@ V_liquid_min = g("min_liquid_volume_gal", 10.0) * GAL_TO_M3
 # Two-phase end-of-unload
 D_outlet = g("outlet_diameter_in", 3.0) * IN_TO_M  # defaults to 3 in (same as valve)
 
+# Valve timing (pre-pressurization)
+t_valve_open = g("valve_open_time_s", 0)  # 0 = open from start (backward compat)
+
 # ── Build override map ──
 overrides = {
     "V_tank": V_tank,
@@ -175,6 +178,7 @@ overrides = {
     "P_receiver": P_receiver,
     "V_liquid_min": V_liquid_min,
     "D_outlet": D_outlet,
+    "t_valve_open": t_valve_open,
 }
 
 override_str = ",".join(f"{k}={v}" for k, v in overrides.items())
