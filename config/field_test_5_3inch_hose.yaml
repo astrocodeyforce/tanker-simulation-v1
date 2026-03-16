@@ -1,18 +1,17 @@
-# Field Validation Test 2 — Comp #2 (3,060 gal) → Comp #1 (1,923 gal)
+# Field Validation Test 5 — Comp #1 (1,923 gal) → Comp #2 (3,060 gal)
 # Setup: compartment-to-compartment transfer on same tanker
-# Hose: 2" ID × 20ft smooth-bore SS316 with 3"→2" reducers each end
+# Hose: 3" ID × 25ft, one female cam-lock coupling (no reducers)
 # Compressor: 19 SCFM rated, 70ft small air hose to tank
-# Real-world data: 51 min pre-pressurization to 20 psig, 2:22 discharge
-# Liquid: ~518 gal (same water transferred from Test 1)
+# Liquid: 22" depth in Comp #1 = 518 gal (from calibration chart)
 
-scenario_name: field_test_2_comp2
+scenario_name: field_test_5_3inch
 
-# Tank Geometry — Compartment #2 (calibration chart: 3,060 gal, same tanker ~68" dia)
-tank_total_volume_gal: 3060
+# Tank Geometry — Compartment #1 (calibration chart: 1,923 gal, same tanker ~68" dia)
+tank_total_volume_gal: 1923
 tank_diameter_in: 68.0
 tank_length_ft: 0
 
-# Initial Conditions (~518 gal, same water from Test 1)
+# Initial Conditions (518 gal from calibration chart at 22" depth)
 initial_liquid_volume_gal: 518
 initial_tank_pressure_psig: 0.0
 gas_temperature_C: 20.0
@@ -38,12 +37,12 @@ valve_diameter_in: 3.0
 valve_K_open: 0.2
 valve_opening_fraction: 1.0
 
-# Pipe Segments (single 2" hose, 20 ft)
+# Pipe Segments (single 3" hose, 25 ft — no reducers needed)
 num_pipes: 1
-pipe1_diameter_in: 2.0
-pipe1_length_ft: 20.0
-pipe1_roughness_mm: 0.015    # smooth-bore SS316
-pipe1_K_minor: 2.59    # 3"→2" contraction(0.33) + expansion(0.56) + couplings(0.20) + entry(0.5) + exit(1.0)
+pipe1_diameter_in: 3.0
+pipe1_length_ft: 25.0
+pipe1_roughness_mm: 0.015    # SS316 smooth-bore (adjust if rubber)
+pipe1_K_minor: 1.60    # entry(0.5) + 1x cam-lock(0.10) + exit(1.0)
 
 pipe2_diameter_in: 3.0
 pipe2_length_ft: 0.0
@@ -69,14 +68,10 @@ pipe5_K_minor: 0.0
 elevation_change_ft: 0.0
 receiver_pressure_psig: 0.0
 
-# Valve Timing (pre-pressurization)
-# Real-world: valve opened after 51 min (3060s) of pressurizing to 20 psig
-valve_open_time_s: 3060
+# Valve Timing (pre-pressurized to 20 psig before opening valve)
+valve_open_time_s: 2760
 
 # Simulation
 stop_time_s: 5400
 output_interval_s: 1.0
 min_liquid_volume_gal: 5
-
-# Two-phase outlet
-outlet_diameter_in: 2.0

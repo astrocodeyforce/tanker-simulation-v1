@@ -79,10 +79,8 @@ PRESETS = {
         "liquid_density_kg_m3": 1050.0, "liquid_viscosity_cP": 100.0,
         "n_power_law": 1.0, "outlet_diameter_in": 3.0,
         "valve_diameter_in": 3.0, "valve_K_open": 0.2, "valve_opening_fraction": 1.0,
-        "num_pipes": 3,
-        "pipe1_diameter_in": 3.0, "pipe1_length_ft": 1.0, "pipe1_roughness_mm": 0.01, "pipe1_K_minor": 0.5,
-        "pipe2_diameter_in": 3.0, "pipe2_length_ft": 20.0, "pipe2_roughness_mm": 0.01, "pipe2_K_minor": 0.5,
-        "pipe3_diameter_in": 3.0, "pipe3_length_ft": 1.0, "pipe3_roughness_mm": 0.01, "pipe3_K_minor": 2.1,
+        "num_pipes": 1,
+        "pipe1_diameter_in": 3.0, "pipe1_length_ft": 20.0, "pipe1_roughness_mm": 0.01, "pipe1_K_minor": 0.5,
         "elevation_change_ft": 0.0, "receiver_pressure_psig": 0.0,
         "stop_time_s": 5400, "output_interval_s": 1.0, "min_liquid_volume_gal": 1.0,
     },
@@ -96,10 +94,8 @@ PRESETS = {
         "liquid_density_kg_m3": 850.0, "liquid_viscosity_cP": 1.0,
         "n_power_law": 1.0, "outlet_diameter_in": 3.0,
         "valve_diameter_in": 3.0, "valve_K_open": 0.2, "valve_opening_fraction": 1.0,
-        "num_pipes": 3,
-        "pipe1_diameter_in": 3.0, "pipe1_length_ft": 1.0, "pipe1_roughness_mm": 0.01, "pipe1_K_minor": 0.5,
-        "pipe2_diameter_in": 3.0, "pipe2_length_ft": 20.0, "pipe2_roughness_mm": 0.01, "pipe2_K_minor": 0.5,
-        "pipe3_diameter_in": 3.0, "pipe3_length_ft": 1.0, "pipe3_roughness_mm": 0.01, "pipe3_K_minor": 2.1,
+        "num_pipes": 1,
+        "pipe1_diameter_in": 3.0, "pipe1_length_ft": 20.0, "pipe1_roughness_mm": 0.01, "pipe1_K_minor": 0.5,
         "elevation_change_ft": 0.0, "receiver_pressure_psig": 0.0,
         "stop_time_s": 3600, "output_interval_s": 1.0, "min_liquid_volume_gal": 1.0,
     },
@@ -113,10 +109,8 @@ PRESETS = {
         "liquid_density_kg_m3": 1200.0, "liquid_viscosity_cP": 500.0,
         "n_power_law": 1.0, "outlet_diameter_in": 2.0,
         "valve_diameter_in": 2.0, "valve_K_open": 0.3, "valve_opening_fraction": 1.0,
-        "num_pipes": 3,
-        "pipe1_diameter_in": 2.0, "pipe1_length_ft": 1.0, "pipe1_roughness_mm": 0.01, "pipe1_K_minor": 0.5,
-        "pipe2_diameter_in": 2.0, "pipe2_length_ft": 20.0, "pipe2_roughness_mm": 0.01, "pipe2_K_minor": 0.5,
-        "pipe3_diameter_in": 2.0, "pipe3_length_ft": 1.0, "pipe3_roughness_mm": 0.01, "pipe3_K_minor": 2.1,
+        "num_pipes": 1,
+        "pipe1_diameter_in": 2.0, "pipe1_length_ft": 20.0, "pipe1_roughness_mm": 0.01, "pipe1_K_minor": 0.5,
         "elevation_change_ft": 3.0, "receiver_pressure_psig": 0.0,
         "stop_time_s": 10800, "output_interval_s": 2.0, "min_liquid_volume_gal": 1.0,
     },
@@ -292,22 +286,37 @@ def find_latest_run(scenario_prefix: str) -> str | None:
 # =============================================================================
 
 
-def build_pressure_chart(df, scenario=""):
+def calc_chart_tmax(df, margin_min=5.0):
+    """Find when discharge ends (flow drops to ~0) and add margin. Returns minutes."""
+    if "Q_L_gpm" in df.columns:
+        col = "Q_total_gpm" if "Q_total_gpm" in df.columns else "Q_L_gpm"
+        # Find last time flow > 1 GPM
+        flowing = df[df[col] > 1.0]
+        if not flowing.empty:
+            return flowing["time_min"].iloc[-1] + margin_min
+    # Fallback: use full data range
+    return df["time_min"].max()
+
+
+def build_pressure_chart(df, scenario="", t_max_min=None):
     fig = go.Figure()
     fig.add_trace(go.Scatter(
         x=df["time_min"], y=df["P_tank_psig"],
         mode="lines", name="Tank Pressure",
         line=dict(color=COLORS["pressure"], width=2),
     ))
-    fig.update_layout(
+    layout_kw = dict(
         title=f"Tank Pressure — {scenario}" if scenario else "Tank Pressure",
         xaxis_title="Time (min)", yaxis_title="Pressure (psig)",
         template="plotly_white", height=400,
     )
+    if t_max_min is not None:
+        layout_kw["xaxis_range"] = [0, t_max_min]
+    fig.update_layout(**layout_kw)
     return fig
 
 
-def build_flow_chart(df, scenario=""):
+def build_flow_chart(df, scenario="", t_max_min=None):
     col = "Q_total_gpm" if "Q_total_gpm" in df.columns else "Q_L_gpm"
     fig = go.Figure()
     fig.add_trace(go.Scatter(
@@ -315,45 +324,54 @@ def build_flow_chart(df, scenario=""):
         mode="lines", name="Flow Rate",
         line=dict(color=COLORS["flow"], width=2),
     ))
-    fig.update_layout(
+    layout_kw = dict(
         title=f"Liquid Flow Rate — {scenario}" if scenario else "Liquid Flow Rate",
         xaxis_title="Time (min)", yaxis_title="Flow (GPM)",
         template="plotly_white", height=400,
     )
+    if t_max_min is not None:
+        layout_kw["xaxis_range"] = [0, t_max_min]
+    fig.update_layout(**layout_kw)
     return fig
 
 
-def build_volume_remaining_chart(df, scenario=""):
+def build_volume_remaining_chart(df, scenario="", t_max_min=None):
     fig = go.Figure()
     fig.add_trace(go.Scatter(
         x=df["time_min"], y=df["V_liquid_gal"],
         mode="lines", name="Remaining",
         line=dict(color=COLORS["remaining"], width=2),
     ))
-    fig.update_layout(
+    layout_kw = dict(
         title=f"Volume Remaining — {scenario}" if scenario else "Volume Remaining",
         xaxis_title="Time (min)", yaxis_title="Volume (gal)",
         template="plotly_white", height=400,
     )
+    if t_max_min is not None:
+        layout_kw["xaxis_range"] = [0, t_max_min]
+    fig.update_layout(**layout_kw)
     return fig
 
 
-def build_volume_transferred_chart(df, scenario=""):
+def build_volume_transferred_chart(df, scenario="", t_max_min=None):
     fig = go.Figure()
     fig.add_trace(go.Scatter(
         x=df["time_min"], y=df["V_transferred_gal"],
         mode="lines", name="Transferred",
         line=dict(color=COLORS["transferred"], width=2),
     ))
-    fig.update_layout(
+    layout_kw = dict(
         title=f"Volume Transferred — {scenario}" if scenario else "Volume Transferred",
         xaxis_title="Time (min)", yaxis_title="Volume (gal)",
         template="plotly_white", height=400,
     )
+    if t_max_min is not None:
+        layout_kw["xaxis_range"] = [0, t_max_min]
+    fig.update_layout(**layout_kw)
     return fig
 
 
-def build_engineering_charts(df, scenario=""):
+def build_engineering_charts(df, scenario="", t_max_min=None):
     """Build detailed engineering charts: pressure drops, Reynolds, level."""
     charts = []
 
@@ -367,9 +385,12 @@ def build_engineering_charts(df, scenario=""):
             if col in df.columns and df[col].abs().max() > 0.01:
                 fig.add_trace(go.Scatter(x=df["time_min"], y=df[col] / PSI_CONV,
                     mode="lines", name=seg["label"], line=dict(color=COLORS[seg["color"]])))
-        fig.update_layout(title="Pressure Drops by Component",
+        _kw = dict(title="Pressure Drops by Component",
             xaxis_title="Time (min)", yaxis_title="ΔP (psi)",
             template="plotly_white", height=400)
+        if t_max_min is not None:
+            _kw["xaxis_range"] = [0, t_max_min]
+        fig.update_layout(**_kw)
         charts.append(fig)
 
     # Reynolds numbers — dynamic: only show segments with non-zero pressure drop
@@ -389,9 +410,12 @@ def build_engineering_charts(df, scenario=""):
             annotation_text="Laminar→Transition")
         fig.add_hline(y=4000, line_dash="dash", line_color="orange",
             annotation_text="Transition→Turbulent")
-        fig.update_layout(title="Reynolds Number",
+        _kw = dict(title="Reynolds Number",
             xaxis_title="Time (min)", yaxis_title="Re",
             template="plotly_white", height=400)
+        if t_max_min is not None:
+            _kw["xaxis_range"] = [0, t_max_min]
+        fig.update_layout(**_kw)
         charts.append(fig)
 
     # Liquid level
@@ -401,9 +425,12 @@ def build_engineering_charts(df, scenario=""):
             y=df["h_liquid"] * 39.3701,  # m → inches
             mode="lines", name="Liquid Level",
             line=dict(color=COLORS["remaining"], width=2)))
-        fig.update_layout(title="Liquid Level in Tank",
+        _kw = dict(title="Liquid Level in Tank",
             xaxis_title="Time (min)", yaxis_title="Height (inches)",
             template="plotly_white", height=400)
+        if t_max_min is not None:
+            _kw["xaxis_range"] = [0, t_max_min]
+        fig.update_layout(**_kw)
         charts.append(fig)
 
     # Air mass flow
@@ -416,9 +443,12 @@ def build_engineering_charts(df, scenario=""):
             fig.add_trace(go.Scatter(x=df["time_min"], y=df["mdot_relief"] * 1000,
                 mode="lines", name="Relief Out",
                 line=dict(color=COLORS["pressure"], width=2)))
-        fig.update_layout(title="Air Mass Flow",
+        _kw = dict(title="Air Mass Flow",
             xaxis_title="Time (min)", yaxis_title="Flow (g/s)",
             template="plotly_white", height=400)
+        if t_max_min is not None:
+            _kw["xaxis_range"] = [0, t_max_min]
+        fig.update_layout(**_kw)
         charts.append(fig)
 
     # Effective Viscosity (non-Newtonian)
@@ -439,9 +469,12 @@ def build_engineering_charts(df, scenario=""):
                     mode="lines", name=label, line=dict(color=color)))
                 mu_plotted = True
     if mu_plotted:
-        fig.update_layout(title="Effective Viscosity (Power-Law)",
+        _kw = dict(title="Effective Viscosity (Power-Law)",
             xaxis_title="Time (min)", yaxis_title="μ_eff (cP)",
             template="plotly_white", height=400)
+        if t_max_min is not None:
+            _kw["xaxis_range"] = [0, t_max_min]
+        fig.update_layout(**_kw)
         charts.append(fig)
 
     # Two-Phase Factor (end-of-unload)
@@ -456,10 +489,13 @@ def build_engineering_charts(df, scenario=""):
                 annotation_text="Full liquid flow")
             fig.add_hline(y=0.5, line_dash="dot", line_color="orange",
                 annotation_text="50% two-phase")
-            fig.update_layout(title="Two-Phase Factor (End-of-Unload)",
+            _kw = dict(title="Two-Phase Factor (End-of-Unload)",
                 xaxis_title="Time (min)", yaxis_title="f_two_phase (0–1)",
                 yaxis_range=[-0.05, 1.1],
                 template="plotly_white", height=400)
+            if t_max_min is not None:
+                _kw["xaxis_range"] = [0, t_max_min]
+            fig.update_layout(**_kw)
             charts.append(fig)
 
     return charts
@@ -590,13 +626,14 @@ def generate_pdf_report(
 
         # ==== CHART PAGES ====
         # Collect all chart figures
+        _tmax = calc_chart_tmax(df)
         all_figs = [
-            ("Tank Pressure", build_pressure_chart(df, scenario)),
-            ("Liquid Flow Rate", build_flow_chart(df, scenario)),
-            ("Volume Remaining", build_volume_remaining_chart(df, scenario)),
-            ("Volume Transferred", build_volume_transferred_chart(df, scenario)),
+            ("Tank Pressure", build_pressure_chart(df, scenario, t_max_min=_tmax)),
+            ("Liquid Flow Rate", build_flow_chart(df, scenario, t_max_min=_tmax)),
+            ("Volume Remaining", build_volume_remaining_chart(df, scenario, t_max_min=_tmax)),
+            ("Volume Transferred", build_volume_transferred_chart(df, scenario, t_max_min=_tmax)),
         ]
-        eng_figs = build_engineering_charts(df, scenario)
+        eng_figs = build_engineering_charts(df, scenario, t_max_min=_tmax)
         for ef in eng_figs:
             title = ef.layout.title.text if ef.layout.title and ef.layout.title.text else "Engineering Detail"
             all_figs.append((title, ef))
@@ -989,7 +1026,7 @@ def page_run_simulation():
 
             params[f"{seg_key}_length_ft"] = c2.number_input(
                 "Hose Length (ft)", min_value=1.0, max_value=200.0,
-                value=float(defaults.get(f"{seg_key}_length_ft", 25.0)), step=5.0, format="%.1f",
+                value=float(defaults.get(f"{seg_key}_length_ft", 20.0)), step=5.0, format="%.1f",
                 key=f"p{seg}l", help="Total length of this pipe/hose section.")
 
             material_names = list(HOSE_MATERIALS.keys())
@@ -1264,21 +1301,22 @@ def page_run_simulation():
             cols[i].metric(label, value)
 
         # Charts (use trimmed data)
+        _tmax = calc_chart_tmax(df_plot)
         c1, c2 = st.columns(2)
         with c1:
-            st.plotly_chart(build_pressure_chart(df_plot), use_container_width=True)
+            st.plotly_chart(build_pressure_chart(df_plot, t_max_min=_tmax), use_container_width=True)
         with c2:
-            st.plotly_chart(build_flow_chart(df_plot), use_container_width=True)
+            st.plotly_chart(build_flow_chart(df_plot, t_max_min=_tmax), use_container_width=True)
 
         c1, c2 = st.columns(2)
         with c1:
-            st.plotly_chart(build_volume_remaining_chart(df_plot), use_container_width=True)
+            st.plotly_chart(build_volume_remaining_chart(df_plot, t_max_min=_tmax), use_container_width=True)
         with c2:
-            st.plotly_chart(build_volume_transferred_chart(df_plot), use_container_width=True)
+            st.plotly_chart(build_volume_transferred_chart(df_plot, t_max_min=_tmax), use_container_width=True)
 
         # Engineering detail in expander
         with st.expander("Engineering Detail", expanded=False):
-            eng_charts = build_engineering_charts(df_plot)
+            eng_charts = build_engineering_charts(df_plot, t_max_min=_tmax)
             for chart in eng_charts:
                 st.plotly_chart(chart, use_container_width=True)
 
@@ -1301,7 +1339,7 @@ def page_run_simulation():
                 with st.spinner("Generating PDF report..."):
                     try:
                         pdf_bytes = generate_pdf_report(
-                            df=df,
+                            df=df_plot,
                             scenario=run_name,
                             summary=summary,
                             params=params,
@@ -1360,24 +1398,25 @@ def page_past_results():
             cols[i % len(cols)].metric(label, value)
 
         # Charts (use trimmed data)
+        _tmax = calc_chart_tmax(df_plot)
         c1, c2 = st.columns(2)
         with c1:
-            st.plotly_chart(build_pressure_chart(df_plot, run["scenario"]),
+            st.plotly_chart(build_pressure_chart(df_plot, run["scenario"], t_max_min=_tmax),
                           use_container_width=True, key=f"p_{name}")
         with c2:
-            st.plotly_chart(build_flow_chart(df_plot, run["scenario"]),
+            st.plotly_chart(build_flow_chart(df_plot, run["scenario"], t_max_min=_tmax),
                           use_container_width=True, key=f"f_{name}")
 
         c1, c2 = st.columns(2)
         with c1:
-            st.plotly_chart(build_volume_remaining_chart(df_plot, run["scenario"]),
+            st.plotly_chart(build_volume_remaining_chart(df_plot, run["scenario"], t_max_min=_tmax),
                           use_container_width=True, key=f"vr_{name}")
         with c2:
-            st.plotly_chart(build_volume_transferred_chart(df_plot, run["scenario"]),
+            st.plotly_chart(build_volume_transferred_chart(df_plot, run["scenario"], t_max_min=_tmax),
                           use_container_width=True, key=f"vt_{name}")
 
         with st.expander("Engineering Detail"):
-            eng_charts = build_engineering_charts(df_plot, run["scenario"])
+            eng_charts = build_engineering_charts(df_plot, run["scenario"], t_max_min=_tmax)
             for j, chart in enumerate(eng_charts):
                 st.plotly_chart(chart, use_container_width=True, key=f"eng_{name}_{j}")
 
