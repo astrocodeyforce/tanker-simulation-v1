@@ -22,3 +22,28 @@ Thumbs.db
 # Logs
 *.log
 nohup.out
+
+# Backup files
+*.bak
+
+# Sweep / experimental configs (not production)
+config/app_IPAC_visc_sweep_*.yaml
+config/app_IPAC_n*_2600cP.yaml
+config/app_IPAC_2600cP_BP*.yaml
+config/app_IPAC_3200cP_*.yaml
+config/app_IPAC_3500cP_*.yaml
+config/app_IGOR_IPAC_63000.yaml
+config/app_Igor_test.yaml
+config/app_TEST_*__AIR_.yaml
+
+# Dashboard custom run state (local only)
+config/app_custom_run.yaml
+
+# Data files
+data/figures/*.xlsx
+
+# External PDFs (SDS etc.)
+docs/IPAC*.pdf
+
+# One-off scripts
+docs/generate_report_pdf.py
