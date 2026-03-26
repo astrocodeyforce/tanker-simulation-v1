@@ -849,6 +849,37 @@ def page_run_simulation():
             value=float(defaults["ambient_pressure_psia"]), step=0.01, format="%.3f",
             help="Atmospheric pressure. 14.696 is standard sea level. Lower at higher elevations.")
 
+        # ── Geometry validation ──
+        import math as _math
+        _d_in = params["tank_diameter_in"]
+        _l_ft = params["tank_length_ft"]
+        _v_gal = params["tank_total_volume_gal"]
+        _liq_gal = params["initial_liquid_volume_gal"]
+        if _l_ft > 0:
+            _r_ft = (_d_in / 12) / 2
+            _max_gal = _math.pi * _r_ft ** 2 * _l_ft * 7.48052
+            st.info(
+                f"📐 Cylinder volume for **{_d_in:.0f}\" dia × {_l_ft:.1f} ft**: "
+                f"**{_max_gal:,.0f} gal**"
+            )
+            if _v_gal > _max_gal * 1.01:
+                st.error(
+                    f"**Impossible geometry:** A {_d_in:.0f}\" dia × {_l_ft:.1f} ft cylinder "
+                    f"holds max **{_max_gal:,.0f} gal**, but tank capacity is set to "
+                    f"**{_v_gal:,} gal**. Increase diameter or length."
+                )
+            if _liq_gal > _max_gal * 1.01:
+                st.error(
+                    f"**Impossible fill:** Liquid volume ({_liq_gal:,} gal) exceeds "
+                    f"the physical cylinder capacity ({_max_gal:,.0f} gal). "
+                    f"Reduce liquid or fix tank dimensions."
+                )
+            elif _liq_gal > _v_gal:
+                st.error(
+                    f"**Liquid ({_liq_gal:,} gal) exceeds tank capacity ({_v_gal:,} gal).** "
+                    f"Reduce liquid volume."
+                )
+
         st.subheader("Safety — Overpressure Protection")
         st.caption("The relief valve is a safety device that automatically vents air if tank pressure gets too high, preventing rupture.")
         c1, c2, c3, c4 = st.columns(4)
@@ -1009,9 +1040,9 @@ def page_run_simulation():
             seg_key = f"pipe{seg}"
             if seg > num_pipes:
                 params[f"{seg_key}_diameter_in"] = 3.0
-                params[f"{seg_key}_length_ft"] = 0.0
+                params[f"{seg_key}_length_ft"] = 0.001
                 params[f"{seg_key}_roughness_mm"] = 0.01
-                params[f"{seg_key}_K_minor"] = 0.0
+                params[f"{seg_key}_K_minor"] = 0.001
                 continue
 
             st.subheader(f"Pipe Segment {seg}")
@@ -1275,88 +1306,91 @@ def page_run_simulation():
 
         df = load_csv(st.session_state["latest_run_csv"])
 
-        # Summary metrics (computed on full data)
-        summary = compute_summary(df)
+        if df.empty:
+            st.error("Simulation produced no output rows. Check parameters and logs.")
+        else:
+            # Summary metrics (computed on full data)
+            summary = compute_summary(df)
 
-        # Trim data to meaningful window for charts
-        df_plot = trim_to_completion(df)
+            # Trim data to meaningful window for charts
+            df_plot = trim_to_completion(df)
 
-        # Calculate & inject pressurization time if starting pressure > 0
-        press_time_min = calc_pressurization_time(
-            params["tank_total_volume_gal"],
-            params["initial_liquid_volume_gal"],
-            params["initial_tank_pressure_psig"],
-            params["air_supply_scfm"],
-        )
-        if press_time_min > 0:
-            # Extract numeric transfer time from summary
-            transfer_str = summary.get("Transfer Time (min)", "0")
-            transfer_val = float(re.sub(r'[^0-9.]', '', transfer_str.split()[0]))
-            total_real = press_time_min + transfer_val
-            summary["Pressurize Time (min)"] = f"{press_time_min:.1f}"
-            summary["Total Realistic Time (min)"] = f"{total_real:.1f}"
-
-        cols = st.columns(len(summary))
-        for i, (label, value) in enumerate(summary.items()):
-            cols[i].metric(label, value)
-
-        # Charts (use trimmed data)
-        _tmax = calc_chart_tmax(df_plot)
-        c1, c2 = st.columns(2)
-        with c1:
-            st.plotly_chart(build_pressure_chart(df_plot, t_max_min=_tmax), use_container_width=True)
-        with c2:
-            st.plotly_chart(build_flow_chart(df_plot, t_max_min=_tmax), use_container_width=True)
-
-        c1, c2 = st.columns(2)
-        with c1:
-            st.plotly_chart(build_volume_remaining_chart(df_plot, t_max_min=_tmax), use_container_width=True)
-        with c2:
-            st.plotly_chart(build_volume_transferred_chart(df_plot, t_max_min=_tmax), use_container_width=True)
-
-        # Engineering detail in expander
-        with st.expander("Engineering Detail", expanded=False):
-            eng_charts = build_engineering_charts(df_plot, t_max_min=_tmax)
-            for chart in eng_charts:
-                st.plotly_chart(chart, use_container_width=True)
-
-        # Download section
-        st.divider()
-        st.subheader("📥 Export")
-        run_name = st.session_state.get("latest_run_name", "simulation")
-        dl_col1, dl_col2 = st.columns(2)
-        with dl_col1:
-            csv_data = df.to_csv(index=False)
-            st.download_button(
-                "📥 Download CSV Data",
-                csv_data,
-                f"{run_name}_results.csv",
-                "text/csv",
-                use_container_width=True,
+            # Calculate & inject pressurization time if starting pressure > 0
+            press_time_min = calc_pressurization_time(
+                params["tank_total_volume_gal"],
+                params["initial_liquid_volume_gal"],
+                params["initial_tank_pressure_psig"],
+                params["air_supply_scfm"],
             )
-        with dl_col2:
-            if st.button("📄 Generate PDF Report", type="primary", use_container_width=True, key="pdf_run"):
-                with st.spinner("Generating PDF report..."):
-                    try:
-                        pdf_bytes = generate_pdf_report(
-                            df=df_plot,
-                            scenario=run_name,
-                            summary=summary,
-                            params=params,
-                        )
-                        st.session_state["pdf_report"] = pdf_bytes
-                        st.session_state["pdf_report_name"] = run_name
-                    except Exception as e:
-                        st.error(f"PDF generation failed: {e}")
+            if press_time_min > 0:
+                # Extract numeric transfer time from summary
+                transfer_str = summary.get("Transfer Time (min)", "0")
+                transfer_val = float(re.sub(r'[^0-9.]', '', transfer_str.split()[0]))
+                total_real = press_time_min + transfer_val
+                summary["Pressurize Time (min)"] = f"{press_time_min:.1f}"
+                summary["Total Realistic Time (min)"] = f"{total_real:.1f}"
 
-        if "pdf_report" in st.session_state:
-            st.download_button(
-                "⬇️ Download PDF Report",
-                st.session_state["pdf_report"],
-                f"{st.session_state.get('pdf_report_name', 'report')}_report.pdf",
-                "application/pdf",
-                use_container_width=True,
-            )
+            cols = st.columns(len(summary))
+            for i, (label, value) in enumerate(summary.items()):
+                cols[i].metric(label, value)
+
+            # Charts (use trimmed data)
+            _tmax = calc_chart_tmax(df_plot)
+            c1, c2 = st.columns(2)
+            with c1:
+                st.plotly_chart(build_pressure_chart(df_plot, t_max_min=_tmax), use_container_width=True)
+            with c2:
+                st.plotly_chart(build_flow_chart(df_plot, t_max_min=_tmax), use_container_width=True)
+
+            c1, c2 = st.columns(2)
+            with c1:
+                st.plotly_chart(build_volume_remaining_chart(df_plot, t_max_min=_tmax), use_container_width=True)
+            with c2:
+                st.plotly_chart(build_volume_transferred_chart(df_plot, t_max_min=_tmax), use_container_width=True)
+
+            # Engineering detail in expander
+            with st.expander("Engineering Detail", expanded=False):
+                eng_charts = build_engineering_charts(df_plot, t_max_min=_tmax)
+                for chart in eng_charts:
+                    st.plotly_chart(chart, use_container_width=True)
+
+            # Download section
+            st.divider()
+            st.subheader("📥 Export")
+            run_name = st.session_state.get("latest_run_name", "simulation")
+            dl_col1, dl_col2 = st.columns(2)
+            with dl_col1:
+                csv_data = df.to_csv(index=False)
+                st.download_button(
+                    "📥 Download CSV Data",
+                    csv_data,
+                    f"{run_name}_results.csv",
+                    "text/csv",
+                    use_container_width=True,
+                )
+            with dl_col2:
+                if st.button("📄 Generate PDF Report", type="primary", use_container_width=True, key="pdf_run"):
+                    with st.spinner("Generating PDF report..."):
+                        try:
+                            pdf_bytes = generate_pdf_report(
+                                df=df_plot,
+                                scenario=run_name,
+                                summary=summary,
+                                params=params,
+                            )
+                            st.session_state["pdf_report"] = pdf_bytes
+                            st.session_state["pdf_report_name"] = run_name
+                        except Exception as e:
+                            st.error(f"PDF generation failed: {e}")
+
+            if "pdf_report" in st.session_state:
+                st.download_button(
+                    "⬇️ Download PDF Report",
+                    st.session_state["pdf_report"],
+                    f"{st.session_state.get('pdf_report_name', 'report')}_report.pdf",
+                    "application/pdf",
+                    use_container_width=True,
+                )
 
 
 # =============================================================================

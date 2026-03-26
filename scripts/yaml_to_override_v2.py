@@ -54,6 +54,8 @@ P_STD = 101325.0
 def g(key, default=0):
     return config.get(key, default)
 
+import math as _math
+
 # Tank geometry
 V_tank = g("tank_total_volume_gal", 7000) * GAL_TO_M3
 D_tank = g("tank_diameter_in", 75) * IN_TO_M
@@ -61,6 +63,29 @@ L_tank = g("tank_length_ft", 0) * FT_TO_M  # 0 = auto
 
 # Initial conditions
 V_liquid_0 = g("initial_liquid_volume_gal", 6500) * GAL_TO_M3
+
+# ── Geometry validation ──
+_R = D_tank / 2
+_max_cylinder_vol = _math.pi * _R * _R * L_tank if L_tank > 0 else 0
+if L_tank > 0:
+    _max_gal = _max_cylinder_vol / GAL_TO_M3
+    _tank_gal = V_tank / GAL_TO_M3
+    _liq_gal = V_liquid_0 / GAL_TO_M3
+    if V_tank > _max_cylinder_vol * 1.01:
+        print(f"ERROR: Tank volume ({_tank_gal:.0f} gal) exceeds cylinder capacity "
+              f"({_max_gal:.0f} gal) for {g('tank_diameter_in',75):.0f}\" dia × "
+              f"{g('tank_length_ft',0):.1f} ft. Fix diameter or length.", file=sys.stderr)
+        sys.exit(1)
+    if V_liquid_0 > _max_cylinder_vol * 1.01:
+        print(f"ERROR: Liquid volume ({_liq_gal:.0f} gal) exceeds cylinder capacity "
+              f"({_max_gal:.0f} gal) for {g('tank_diameter_in',75):.0f}\" dia × "
+              f"{g('tank_length_ft',0):.1f} ft. Reduce liquid or fix geometry.", file=sys.stderr)
+        sys.exit(1)
+    if V_liquid_0 > V_tank * 1.01:
+        print(f"ERROR: Liquid volume ({_liq_gal:.0f} gal) exceeds tank total "
+              f"({_tank_gal:.0f} gal).", file=sys.stderr)
+        sys.exit(1)
+
 P_atm = g("ambient_pressure_psia", 14.696) * PSI_TO_PA
 P_tank_0_gauge = g("initial_tank_pressure_psig", 0.0) * PSI_TO_PA
 P_tank_0 = P_atm + P_tank_0_gauge
@@ -77,7 +102,7 @@ air_scfm = g("air_supply_scfm", 19.0)
 mdot_air_max = air_scfm * SCFM_TO_M3S * P_STD / (R_AIR * T_STD)
 
 # Compressor curve
-c_clearance = g("compressor_clearance", 0.0)  # 0=plant_air, 0.02=rotary_vane, 0.04=reciprocating
+c_clearance = g("compressor_clearance", 0.04)  # 0.04=reciprocating (default), 0.02=rotary_vane, 0=plant_air
 
 # Liquid
 rho_L = g("liquid_density_kg_m3", 1000.0)
@@ -134,6 +159,12 @@ D_outlet = g("outlet_diameter_in", 3.0) * IN_TO_M  # defaults to 3 in (same as v
 t_valve_open = g("valve_open_time_s", 0)  # 0 = open from start (backward compat)
 
 # ── Build override map ──
+# Clamp near-zero values to small epsilon to prevent Modelica solver singularity
+_EPS = 1e-6
+def _nz(v):
+    """Ensure value is non-zero (use tiny epsilon)."""
+    return v if abs(v) > _EPS else _EPS
+
 overrides = {
     "V_tank": V_tank,
     "D_tank": D_tank,
@@ -155,26 +186,26 @@ overrides = {
     "K_valve_open": K_valve_open,
     "u_valve": u_valve,
     "D_pipe1": D_pipe1,
-    "L_pipe1": L_pipe1,
-    "eps_pipe1": eps_pipe1,
-    "K_pipe1": K_pipe1,
+    "L_pipe1": _nz(L_pipe1),
+    "eps_pipe1": _nz(eps_pipe1),
+    "K_pipe1": _nz(K_pipe1),
     "D_pipe2": D_pipe2,
-    "L_pipe2": L_pipe2,
-    "eps_pipe2": eps_pipe2,
-    "K_pipe2": K_pipe2,
+    "L_pipe2": _nz(L_pipe2),
+    "eps_pipe2": _nz(eps_pipe2),
+    "K_pipe2": _nz(K_pipe2),
     "D_pipe3": D_pipe3,
-    "L_pipe3": L_pipe3,
-    "eps_pipe3": eps_pipe3,
-    "K_pipe3": K_pipe3,
+    "L_pipe3": _nz(L_pipe3),
+    "eps_pipe3": _nz(eps_pipe3),
+    "K_pipe3": _nz(K_pipe3),
     "D_pipe4": D_pipe4,
-    "L_pipe4": L_pipe4,
-    "eps_pipe4": eps_pipe4,
-    "K_pipe4": K_pipe4,
+    "L_pipe4": _nz(L_pipe4),
+    "eps_pipe4": _nz(eps_pipe4),
+    "K_pipe4": _nz(K_pipe4),
     "D_pipe5": D_pipe5,
-    "L_pipe5": L_pipe5,
-    "eps_pipe5": eps_pipe5,
-    "K_pipe5": K_pipe5,
-    "dz_total": dz_total,
+    "L_pipe5": _nz(L_pipe5),
+    "eps_pipe5": _nz(eps_pipe5),
+    "K_pipe5": _nz(K_pipe5),
+    "dz_total": _nz(dz_total),
     "P_receiver": P_receiver,
     "V_liquid_min": V_liquid_min,
     "D_outlet": D_outlet,

@@ -186,7 +186,7 @@ model TankerTransferV2
   Real P_tank_psig "Tank gauge pressure [psig]";
 
   // Liquid level in horizontal cylinder
-  Real h_liquid(unit="m") "Liquid height from bottom of cylinder [m]";
+  Real h_liquid(unit="m", start=D_tank*0.5) "Liquid height from bottom of cylinder [m]";
   Real A_cross_liquid(unit="m2") "Liquid cross-section area [m²]";
 
   // Driving pressure
